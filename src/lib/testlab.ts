@@ -386,7 +386,10 @@ export const TESTS: TestDef[] = [
       const row = (led ?? []).find((r) => r.user_id === c.ids.clipper && r.campaign_id === c.ids.campaign);
       s.check("Clipper shows in ledger after campaign completes", !!row && row.campaign_status === "complete");
       const owed = Number(row!.owed);
-      s.check("Owed equals earned (60K × $2 = $120)", owed === 120, String(owed));
+      s.check("60K views × $2 CPM = $120 on the clip", (await earnings(c, c.ids.sub!)) === 120, String(await earnings(c, c.ids.sub!)));
+      const mine = must(await c.sb.from("submissions").select("earnings").eq("campaign_id", c.ids.campaign!).eq("user_id", c.ids.clipper!).eq("status", "approved"), "clipper earnings") as { earnings: number }[];
+      const expected = Math.round(mine.reduce((a, r) => a + Number(r.earnings), 0) * 100) / 100;
+      s.check(`Owed equals everything the clipper earned ($${expected.toFixed(2)})`, Math.abs(owed - expected) < 0.005, String(owed));
       const p = must(await c.sb.from("payouts").insert({ user_id: c.ids.clipper, campaign_id: c.ids.campaign, amount: owed, method: "paypal", reference: "TEST-TXN", is_test: true }).select("id").single(), "record payout");
       const led2 = ((await c.sb.rpc("payout_ledger", { p_include_test: true })).data as L[]).find((r) => r.user_id === c.ids.clipper && r.campaign_id === c.ids.campaign)!;
       s.check("Marked paid → owed drops to $0", Number(led2.owed) === 0, String(led2.owed));
