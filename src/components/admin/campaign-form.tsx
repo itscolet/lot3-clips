@@ -39,7 +39,7 @@ export function CampaignForm({ c, clients }: { c?: Campaign; clients: { id: stri
             />
           </Field>
           <Field label="Artist / brand"><Input name="artist" defaultValue={c?.artist ?? ""} /></Field>
-          <Field label="URL" hint={`lot3clips.com/campaigns/${slug || "…"}`}>
+          <Field label="URL" hint={`${(process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/^https?:\/\//, "")}/campaigns/${slug || "…"}`}>
             <Input name="slug" value={slug} onChange={(e) => { setSlug(slugify(e.target.value)); setSlugTouched(true); }} />
           </Field>
           <Field label="Client">
