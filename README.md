@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LOT3 Clips
 
-## Getting Started
+Pay-per-view clipping marketplace by LOT3 Media. Next.js 16 + Supabase + Apify, hosted on Railway.
 
-First, run the development server:
+## Environment variables
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| Name | What |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://nhhdbpmidkqdkeatowif.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+| `NEXT_PUBLIC_SITE_URL` | Public URL of the site, no trailing slash |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API keys → service_role / secret. Needed for the scheduled view sync and automatic bio verification. |
+| `APIFY_TOKEN` | Apify → Settings → Integrations → API token. Needed for live view tracking. |
+| `CRON_SECRET` | Random string; the cron job sends it as `Authorization: Bearer <secret>` to `POST /api/cron/sync`. |
+
+## Scheduled view sync
+
+A Railway cron service runs every 6 hours:
+
+```
+curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/cron/sync"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Make an account admin in Supabase SQL editor:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```sql
+update public.profiles set role = 'admin' where username = 'yourname';
+```
 
-## Learn More
+Then open `/admin`. The Test Lab (`/admin/test-lab`) runs every function end to end with throwaway TEST data.
 
-To learn more about Next.js, take a look at the following resources:
+## Earnings
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`earnings = views / 1000 × CPM`, capped per clip if set; if approved views exceed the budget, earnings are prorated so spend never exceeds budget. Earnings become payable when a campaign is marked complete.

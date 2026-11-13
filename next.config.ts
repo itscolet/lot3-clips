@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Every page reads the session cookie, so we render dynamically and skip Cache Components.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {
@@ -12,6 +15,8 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  images: { unoptimized: true },
+  poweredByHeader: false,
 };
 
 export default nextConfig;
