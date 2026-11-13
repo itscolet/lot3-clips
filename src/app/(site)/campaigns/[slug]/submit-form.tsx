@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import { submitClip, type ActionState } from "@/app/dashboard/actions";
 import { PlatformIcon } from "@/components/ui/icons";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { Input, LinkButton } from "@/components/ui/ui";
 import { FormNote } from "@/components/ui/form-note";
 import type { Platform, SocialAccount } from "@/lib/types";
@@ -44,7 +44,7 @@ export function SubmitClipForm({
   }
 
   return (
-    <form ref={ref} action={action} className="flex flex-col gap-3">
+    <ActionForm ref={ref} action={action} className="flex flex-col gap-3">
       <input type="hidden" name="campaign_id" value={campaignId} />
       <input type="hidden" name="slug" value={slug} />
       <span className="text-[12px] font-medium text-mute">Posted from</span>
@@ -65,6 +65,6 @@ export function SubmitClipForm({
       <p className="text-center text-[11px] text-dim">
         By submitting you agree to the <Link href="/terms" className="underline underline-offset-2">rules</Link>.
       </p>
-    </form>
+    </ActionForm>
   );
 }

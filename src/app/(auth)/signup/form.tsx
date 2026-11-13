@@ -3,13 +3,13 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { signUp, type AuthState } from "../actions";
 import { Field, Input } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 
 export function SignupForm({ next }: { next: string }) {
   const [state, action] = useActionState<AuthState, FormData>(signUp, null);
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <ActionForm action={action} className="flex flex-col gap-5">
       <div>
         <h1 className="text-[30px] font-medium tracking-[-0.035em]">Start clipping</h1>
         <p className="mt-1.5 text-[14px] text-mute">Create your account. Connect your pages next.</p>
@@ -33,6 +33,6 @@ export function SignupForm({ next }: { next: string }) {
       <p className="text-center text-[13px] text-mute">
         Have an account? <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-ink">Log in</Link>
       </p>
-    </form>
+    </ActionForm>
   );
 }

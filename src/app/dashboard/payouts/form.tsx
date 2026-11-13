@@ -2,13 +2,13 @@
 import { useActionState } from "react";
 import { savePayout, type ActionState } from "../actions";
 import { Field, Input, Select } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 
 export function PayoutForm({ method, handle }: { method: string; handle: string }) {
   const [state, action] = useActionState<ActionState, FormData>(savePayout, null);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <ActionForm action={action} className="flex flex-col gap-4">
       <Field label="Method">
         <Select name="method" defaultValue={method}>
           <option value="paypal">PayPal</option>
@@ -24,6 +24,6 @@ export function PayoutForm({ method, handle }: { method: string; handle: string 
       </Field>
       <SubmitButton pendingText="Saving">Save</SubmitButton>
       <FormNote state={state} />
-    </form>
+    </ActionForm>
   );
 }

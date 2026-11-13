@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { reviewSubmission, setManualViews, syncNow, type AState } from "@/app/admin/actions";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 import { cn } from "@/lib/format";
 
@@ -35,7 +35,7 @@ export function ConfirmButton({ action, id, label, confirmLabel }: { action: (fd
     return () => clearTimeout(t);
   }, [armed]);
   return (
-    <form action={action}>
+    <ActionForm action={action}>
       <input type="hidden" name="id" value={id} />
       <button
         type={armed ? "submit" : "button"}
@@ -49,7 +49,7 @@ export function ConfirmButton({ action, id, label, confirmLabel }: { action: (fd
       >
         {armed ? confirmLabel : label}
       </button>
-    </form>
+    </ActionForm>
   );
 }
 
@@ -114,20 +114,21 @@ export function ManualViews({ id, views, likes }: { id: string; views: number; l
       </button>
       <AnimatePresence>
         {open && (
-          <motion.form
-            action={action}
+          <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.14 }}
-            className="absolute right-0 top-9 z-30 flex w-64 flex-col gap-2 rounded-xl border border-line2 bg-s2 p-3 shadow-2xl shadow-black"
+            className="absolute right-0 top-9 z-30 w-64 rounded-xl border border-line2 bg-s2 p-3 shadow-2xl shadow-black"
           >
+            <ActionForm action={action} className="flex flex-col gap-2">
             <input type="hidden" name="id" value={id} />
             <label className="text-[11px] text-dim">Views<input name="views" type="number" defaultValue={views} className="mt-1 h-8 w-full rounded-lg border border-line2 bg-black px-2.5 text-[12px]" /></label>
             <label className="text-[11px] text-dim">Likes<input name="likes" type="number" defaultValue={likes} className="mt-1 h-8 w-full rounded-lg border border-line2 bg-black px-2.5 text-[12px]" /></label>
             <SubmitButton size="sm" pendingText="Saving">Save & recalc</SubmitButton>
             <FormNote state={state?.error ? state : null} />
-          </motion.form>
+            </ActionForm>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -138,13 +139,13 @@ export function SyncButton({ campaignId }: { campaignId?: string }) {
   const [state, action] = useActionState<AState, FormData>(syncNow, null);
   const ref = useRef<HTMLFormElement>(null);
   return (
-    <form ref={ref} action={action} className="flex flex-col gap-3">
+    <ActionForm ref={ref} action={action} className="flex flex-col gap-3">
       {campaignId && <input type="hidden" name="campaign_id" value={campaignId} />}
       <div className="flex flex-wrap gap-2">
         <SubmitButton size="sm" name="simulate" value="false" pendingText="Syncing with Apify">Sync live views now</SubmitButton>
         <SubmitButton size="sm" variant="secondary" name="simulate" value="true" pendingText="Simulating">Simulated sync (test data only)</SubmitButton>
       </div>
       <FormNote state={state} />
-    </form>
+    </ActionForm>
   );
 }

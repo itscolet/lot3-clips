@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { sendReset, signIn, type AuthState } from "../actions";
 import { Field, Input } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 
 export function LoginForm({ next }: { next: string }) {
@@ -13,17 +13,17 @@ export function LoginForm({ next }: { next: string }) {
 
   if (reset)
     return (
-      <form action={resetAction} className="flex flex-col gap-5">
+      <ActionForm action={resetAction} className="flex flex-col gap-5">
         <h1 className="text-[30px] font-medium tracking-[-0.035em]">Reset password</h1>
         <Field label="Email"><Input name="email" type="email" required autoComplete="email" /></Field>
         <SubmitButton size="lg" pendingText="Sending">Send reset link</SubmitButton>
         <FormNote state={resetState} />
         <button type="button" onClick={() => setReset(false)} className="text-[13px] text-mute hover:text-ink">← Back to log in</button>
-      </form>
+      </ActionForm>
     );
 
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <ActionForm action={action} className="flex flex-col gap-5">
       <div>
         <h1 className="text-[30px] font-medium tracking-[-0.035em]">Welcome back</h1>
         <p className="mt-1.5 text-[14px] text-mute">Log in to your LOT3 Clips account.</p>
@@ -37,6 +37,6 @@ export function LoginForm({ next }: { next: string }) {
         <button type="button" onClick={() => setReset(true)} className="text-mute hover:text-ink">Forgot password?</button>
         <Link href={`/signup?next=${encodeURIComponent(next)}`} className="text-ink">Create account →</Link>
       </div>
-    </form>
+    </ActionForm>
   );
 }

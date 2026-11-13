@@ -2,7 +2,7 @@
 import { useActionState, useState } from "react";
 import { connectAccount, removeAccount, uploadAudience, verifyAccount, type ActionState } from "../actions";
 import { PlatformIcon } from "@/components/ui/icons";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { Badge, Card, Input } from "@/components/ui/ui";
 import { FormNote } from "@/components/ui/form-note";
 import { compact, PLATFORM_LABEL, cn } from "@/lib/format";
@@ -12,7 +12,7 @@ export function ConnectForm() {
   const [state, action] = useActionState<ActionState, FormData>(connectAccount, null);
   const [platform, setPlatform] = useState<Platform>("tiktok");
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <ActionForm action={action} className="flex flex-col gap-3">
       <input type="hidden" name="platform" value={platform} />
       <div className="grid grid-cols-2 gap-2">
         {(["tiktok", "instagram"] as Platform[]).map((p) => (
@@ -32,7 +32,7 @@ export function ConnectForm() {
       <Input name="handle" placeholder="@yourhandle" required />
       <SubmitButton pendingText="Adding">Add account</SubmitButton>
       <FormNote state={state} />
-    </form>
+    </ActionForm>
   );
 }
 
@@ -73,16 +73,16 @@ export function AccountCard({ a }: { a: SocialAccount }) {
             >
               {copied ? "Copied ✓" : "Copy"}
             </button>
-            <form action={vAction} className="ml-auto">
+            <ActionForm action={vAction} className="ml-auto">
               <input type="hidden" name="id" value={a.id} />
               <SubmitButton size="sm" pendingText="Checking bio">Verify</SubmitButton>
-            </form>
+            </ActionForm>
           </div>
           <div className="mt-3"><FormNote state={vState} /></div>
-          <form action={removeAccount} className="mt-3">
+          <ActionForm action={removeAccount} className="mt-3">
             <input type="hidden" name="id" value={a.id} />
             <button className="text-[12px] text-dim hover:text-ink">Remove account</button>
-          </form>
+          </ActionForm>
         </div>
       )}
 
@@ -95,11 +95,11 @@ export function AccountCard({ a }: { a: SocialAccount }) {
           {a.audience_status === "none" && <span className="text-dim">Not submitted</span>}
         </div>
         {a.audience_status !== "approved" && (
-          <form action={uAction} className="flex items-center gap-2">
+          <ActionForm action={uAction} className="flex items-center gap-2">
             <input type="hidden" name="id" value={a.id} />
             <Input type="file" name="file" accept="image/*" className="h-9 w-56 py-1.5 text-[12px] file:mr-3 file:rounded-full file:border-0 file:bg-s3 file:px-3 file:py-1 file:text-[12px] file:text-ink" />
             <SubmitButton size="sm" variant="secondary" pendingText="Uploading">Upload</SubmitButton>
-          </form>
+          </ActionForm>
         )}
       </div>
       {uState && <div className="mt-3"><FormNote state={uState} /></div>}

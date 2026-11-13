@@ -1,6 +1,6 @@
 "use client";
 import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useTransition, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { btn, type BtnProps } from "./ui";
 import { cn } from "@/lib/format";
@@ -90,6 +90,35 @@ export function CountUp({
   );
 }
 
+const PendingCtx = createContext(false);
+
+/**
+ * Form that runs a server action without React's automatic form reset,
+ * so fields keep what was typed when the action returns an error.
+ */
+export function ActionForm({
+  action,
+  children,
+  ...props
+}: Omit<ComponentProps<"form">, "action" | "onSubmit"> & { action: (fd: FormData) => void }) {
+  const [pending, start] = useTransition();
+  return (
+    <PendingCtx value={pending}>
+      <form
+        {...props}
+        onSubmit={(e) => {
+          e.preventDefault();
+          const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+          const fd = new FormData(e.currentTarget, submitter);
+          start(() => action(fd));
+        }}
+      >
+        {children}
+      </form>
+    </PendingCtx>
+  );
+}
+
 export function SubmitButton({
   children,
   pendingText,
@@ -107,7 +136,9 @@ export function SubmitButton({
   value?: string;
   formAction?: (fd: FormData) => void | Promise<void>;
 } & BtnProps) {
-  const { pending } = useFormStatus();
+  const status = useFormStatus();
+  const ctxPending = useContext(PendingCtx);
+  const pending = status.pending || ctxPending;
   return (
     <button
       type="submit"

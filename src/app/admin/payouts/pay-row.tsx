@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { recordPayout, type AState } from "../actions";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { TestBadge } from "@/components/ui/ui";
 import { Td, Tr } from "@/components/admin/table";
 import { money } from "@/lib/format";
@@ -28,7 +28,7 @@ export function PayRow({ l }: { l: LedgerRow }) {
         {state?.ok ? (
           <span className="block text-right text-[12px] text-mute">✓ {state.message}</span>
         ) : (
-          <form action={action} className="flex items-center justify-end gap-1.5">
+          <ActionForm action={action} className="flex items-center justify-end gap-1.5">
             <input type="hidden" name="user_id" value={l.user_id} />
             <input type="hidden" name="campaign_id" value={l.campaign_id} />
             <input type="hidden" name="method" value={l.method ?? ""} />
@@ -36,7 +36,7 @@ export function PayRow({ l }: { l: LedgerRow }) {
             <input name="amount" type="number" step="0.01" defaultValue={Number(l.owed).toFixed(2)} className="num h-8 w-24 rounded-full border border-line2 bg-s2 px-3 text-right text-[12px] outline-none" />
             <input name="reference" placeholder="Txn ID" className="h-8 w-24 rounded-full border border-line2 bg-s2 px-3 text-[12px] outline-none" />
             <SubmitButton size="sm" pendingText="…">Mark paid</SubmitButton>
-          </form>
+          </ActionForm>
         )}
         {state?.error && <div className="mt-1 text-right text-[11px] text-mute">{state.error}</div>}
       </Td>

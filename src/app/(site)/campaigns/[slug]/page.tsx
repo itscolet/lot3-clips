@@ -62,7 +62,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
           ))}
         </div>
         <div className="mt-6 flex items-end justify-between">
-          <span className="text-[13px] text-mute">Paid out {money(stats.spent)}</span>
+          <span className="text-[13px] text-mute">Spent {money(stats.spent)}</span>
           <span className="num text-[13px]">{money(left)} remaining</span>
         </div>
         <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />

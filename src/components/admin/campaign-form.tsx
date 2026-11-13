@@ -2,7 +2,7 @@
 import { useActionState, useState } from "react";
 import { saveCampaign, type AState } from "@/app/admin/actions";
 import { Card, Field, Input, Select, Textarea } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 import { PlatformIcon } from "@/components/ui/icons";
 import { CampaignCover } from "@/components/site/campaign-card";
@@ -22,7 +22,7 @@ export function CampaignForm({ c, clients }: { c?: Campaign; clients: { id: stri
   const toDate = (s: string | null | undefined) => (s ? s.slice(0, 10) : "");
 
   return (
-    <form action={action} className="grid gap-6 lg:grid-cols-[1fr_340px]">
+    <ActionForm action={action} className="grid gap-6 lg:grid-cols-[1fr_340px]">
       {c && <input type="hidden" name="id" value={c.id} />}
       <div className="flex flex-col gap-6">
         <Card className="grid gap-5 p-6 sm:grid-cols-2">
@@ -138,6 +138,6 @@ export function CampaignForm({ c, clients }: { c?: Campaign; clients: { id: stri
         <SubmitButton size="lg" pendingText="Saving">{c ? "Save changes" : "Create campaign"}</SubmitButton>
         <FormNote state={state} />
       </div>
-    </form>
+    </ActionForm>
   );
 }

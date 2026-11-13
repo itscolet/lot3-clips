@@ -2,14 +2,14 @@
 import { useActionState, useState } from "react";
 import { saveProfile, type ActionState } from "../actions";
 import { Field, Input, Button } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export function ProfileForm({ username, displayName, email }: { username: string; displayName: string; email: string }) {
   const [state, action] = useActionState<ActionState, FormData>(saveProfile, null);
   return (
-    <form action={action} className="grid gap-4 sm:grid-cols-2">
+    <ActionForm action={action} className="grid gap-4 sm:grid-cols-2">
       <Field label="Username"><Input name="username" defaultValue={username} required /></Field>
       <Field label="Display name"><Input name="display_name" defaultValue={displayName} /></Field>
       <Field label="Email" className="sm:col-span-2"><Input value={email} disabled readOnly /></Field>
@@ -17,7 +17,7 @@ export function ProfileForm({ username, displayName, email }: { username: string
         <SubmitButton pendingText="Saving">Save</SubmitButton>
         <div className="flex-1"><FormNote state={state} /></div>
       </div>
-    </form>
+    </ActionForm>
   );
 }
 

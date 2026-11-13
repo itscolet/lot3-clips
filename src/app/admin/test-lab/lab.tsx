@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { purgeTests, runTests, seedDemoData, type AState } from "../actions";
 import type { SuiteReport, TestResult } from "@/lib/testlab";
 import { Card, Input } from "@/components/ui/ui";
-import { SubmitButton } from "@/components/ui/motion";
+import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { FormNote } from "@/components/ui/form-note";
 import { cn, timeAgo } from "@/lib/format";
 
@@ -35,13 +35,13 @@ export function Lab({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex flex-col gap-5">
         <Card className="overflow-hidden">
-          <form action={run} className="flex flex-wrap items-center gap-3 border-b border-line p-4">
+          <ActionForm action={run} className="flex flex-wrap items-center gap-3 border-b border-line p-4">
             <SubmitButton pendingText="Running all tests">Run all tests</SubmitButton>
             <label className="flex items-center gap-2 text-[12px] text-mute">
               <input type="checkbox" name="keep" value="true" className="accent-white" /> Keep test data afterwards
             </label>
             <Input name="live_url" placeholder="Live test URL (optional TikTok/IG post)" className="ml-auto h-9 w-72 text-[12px]" />
-          </form>
+          </ActionForm>
           {report && (
             <div className="flex items-center gap-6 border-b border-line bg-s2/50 px-5 py-3 text-[12px]">
               <span><span className="num text-[15px] text-ink">{report.passed}</span> <span className="text-mute">passed</span></span>
@@ -82,10 +82,10 @@ export function Lab({
                           <span className="text-[13px]">{t.name}</span>
                           {r && <span className="ml-2 text-[11px] text-dim">{r.steps.filter((s) => s.ok).length}/{r.steps.length} checks · {r.ms}ms</span>}
                         </button>
-                        <form action={run}>
+                        <ActionForm action={run}>
                           <input type="hidden" name="only" value={t.key} />
                           <button disabled={running} className="h-7 rounded-full border border-line2 px-3 text-[11px] text-mute transition-colors hover:text-ink disabled:opacity-40">Run</button>
-                        </form>
+                        </ActionForm>
                       </div>
                       <AnimatePresence initial={false}>
                         {isOpen && r && (
@@ -145,12 +145,12 @@ export function Lab({
           <p className="mt-1 text-[12px] text-mute">
             {testData.campaigns} test campaigns · {testData.clippers} test clippers. Test data shows a TEST badge, never appears on the public board, and is never synced with Apify.
           </p>
-          <form action={seed} className="mt-4">
+          <ActionForm action={seed} className="mt-4">
             <SubmitButton variant="secondary" className="w-full" pendingText="Seeding">Seed demo data</SubmitButton>
-          </form>
-          <form action={purge} className="mt-2">
+          </ActionForm>
+          <ActionForm action={purge} className="mt-2">
             <SubmitButton variant="ghost" className="w-full" pendingText="Purging">Delete all test data</SubmitButton>
-          </form>
+          </ActionForm>
           <div className="mt-3"><FormNote state={seedState ?? purgeState} /></div>
         </Card>
         <Card className="p-5">
