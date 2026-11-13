@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, money, money0, timeAgo } from "@/lib/format";
 import type { Campaign, Platform, Stats, SubmissionStatus } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -36,7 +37,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
     supabase.rpc("campaign_stats", { p_campaign: id }).single<Stats>(),
     supabase
       .from("submissions")
-      .select("id,url,platform,status,views,likes,earnings,reject_reason,last_synced_at,created_at,is_test,profiles(id,username),social_accounts(handle,followers)")
+      .select(Q.campaignClips)
       .eq("campaign_id", id)
       .order("views", { ascending: false }),
     supabase.from("clients").select("id,name").order("name"),

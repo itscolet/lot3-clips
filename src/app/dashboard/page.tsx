@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, money, timeAgo } from "@/lib/format";
 import type { Platform, SubmissionStatus } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -25,7 +26,7 @@ export default async function DashboardHome() {
     supabase.rpc("my_balance").single<{ pending: number; available: number; paid: number }>(),
     supabase
       .from("submissions")
-      .select("id,url,platform,status,views,earnings,reject_reason,created_at,campaigns(title,slug,cpm,status)")
+      .select(Q.myClips)
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(100),

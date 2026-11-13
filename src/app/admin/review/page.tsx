@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { PageHead } from "@/components/site/shell";
 import { FilterTabs } from "@/components/admin/table";
 import { Empty, LinkButton } from "@/components/ui/ui";
@@ -13,9 +14,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/admin/rev
   const { supabase } = await requireAdmin();
   let q = supabase
     .from("submissions")
-    .select(
-      "id,url,platform,status,views,likes,reject_reason,created_at,is_test,campaign_id,campaigns(id,title,slug,platforms,territory,content_rules,sound_url),profiles(id,username,trust,status,created_at),social_accounts(handle,followers,verified_at,audience_status,us_audience_pct)",
-    )
+    .select(Q.reviewQueue)
     .order("created_at", { ascending: status === "pending" })
     .limit(200);
   if (status !== "all") q = q.eq("status", status);

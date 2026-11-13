@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, timeAgo } from "@/lib/format";
 import type { Platform } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -36,7 +37,7 @@ export default async function FlagsPage({ searchParams }: PageProps<"/admin/flag
   const { supabase } = await requireAdmin();
   const { data } = await supabase
     .from("flags")
-    .select("id,type,detail,status,created_at,is_test,submissions(id,url,platform,views,likes,status,campaigns(id,title)),profiles(id,username,trust)")
+    .select(Q.flags)
     .eq("status", status)
     .order("created_at", { ascending: false })
     .limit(200);

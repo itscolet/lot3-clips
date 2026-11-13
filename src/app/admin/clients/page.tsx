@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { money0 } from "@/lib/format";
 import { PageHead } from "@/components/site/shell";
 import { Card, Empty, StatusBadge, TestBadge } from "@/components/ui/ui";
@@ -19,7 +20,7 @@ type C = {
 
 export default async function ClientsPage() {
   const { supabase } = await requireAdmin();
-  const { data } = await supabase.from("clients").select("id,name,contact,notes,is_test,campaigns(id,title,status,budget,report_token)").order("created_at", { ascending: false });
+  const { data } = await supabase.from("clients").select(Q.clients).order("created_at", { ascending: false });
   const clients = (data ?? []) as unknown as C[];
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   return (

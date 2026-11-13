@@ -3,6 +3,7 @@ import { supabasePublic } from "./supabase/server";
 import { runSync } from "./sync";
 import { apifyConfigured, fetchMetrics } from "./apify";
 import { detectPlatform } from "./format";
+import { Q, ADMIN_QUERY_TABLES } from "./queries";
 
 export type Step = { label: string; ok: boolean; detail?: string };
 export type TestResult = {
@@ -177,6 +178,17 @@ export const TESTS: TestDef[] = [
       s.check("Draft campaigns are hidden from the public", (anonDraft.data ?? []).length === 0);
       const anonPending = await c.anon.from("submissions").select("id").neq("status", "approved").limit(1);
       s.check("Pending/rejected clips are hidden from the public", (anonPending.data ?? []).length === 0);
+    },
+  },
+  {
+    key: "admin_queries",
+    name: "Every admin screen's data loads",
+    area: "Platform",
+    async run(c, s) {
+      for (const [k, sel] of Object.entries(Q)) {
+        const r = await c.sb.from(ADMIN_QUERY_TABLES[k as keyof typeof Q]).select(sel).limit(1);
+        s.check(`${k}`, !r.error, r.error?.message);
+      }
     },
   },
   {

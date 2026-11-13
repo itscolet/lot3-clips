@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, PLATFORM_LABEL, timeAgo } from "@/lib/format";
 import type { SocialAccount } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -15,8 +16,8 @@ type Acc = SocialAccount & { profiles: { id: string; username: string } | null }
 export default async function VerificationPage() {
   const { supabase } = await requireAdmin();
   const [{ data: unverified }, { data: audience }] = await Promise.all([
-    supabase.from("social_accounts").select("*, profiles(id,username)").is("verified_at", null).order("created_at"),
-    supabase.from("social_accounts").select("*, profiles(id,username)").eq("audience_status", "pending").order("created_at"),
+    supabase.from("social_accounts").select(Q.verification).is("verified_at", null).order("created_at"),
+    supabase.from("social_accounts").select(Q.verification).eq("audience_status", "pending").order("created_at"),
   ]);
   const aud = (audience ?? []) as Acc[];
   const signed = new Map<string, string>();

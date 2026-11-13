@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, money, PLATFORM_LABEL, shortDate, timeAgo } from "@/lib/format";
 import type { Platform, Profile, SocialAccount } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -18,7 +19,7 @@ export default async function ClipperDetail({ params }: PageProps<"/admin/clippe
   const [{ data: p }, { data: accs }, { data: subs }, { data: pays }, { data: ps }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", id).maybeSingle<Profile>(),
     supabase.from("social_accounts").select("*").eq("user_id", id).order("created_at"),
-    supabase.from("submissions").select("id,url,platform,status,views,earnings,created_at,campaigns(id,title)").eq("user_id", id).order("created_at", { ascending: false }),
+    supabase.from("submissions").select(Q.clipperClips).eq("user_id", id).order("created_at", { ascending: false }),
     supabase.from("payouts").select("id,amount,status,reference,created_at,campaigns(title)").eq("user_id", id).order("created_at", { ascending: false }),
     supabase.from("payout_settings").select("*").eq("user_id", id).maybeSingle(),
   ]);

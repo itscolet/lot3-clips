@@ -19,10 +19,9 @@ export const metadata = { title: { default: "Admin", template: "%s · Admin · L
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { supabase, profile } = await requireAdmin();
-  const [pending, verify, audience, flags] = await Promise.all([
+  const [pending, verify, flags] = await Promise.all([
     supabase.from("submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("social_accounts").select("id", { count: "exact", head: true }).is("verified_at", null),
-    supabase.from("social_accounts").select("id", { count: "exact", head: true }).eq("audience_status", "pending"),
+    supabase.from("social_accounts").select("id", { count: "exact", head: true }).or("verified_at.is.null,audience_status.eq.pending"),
     supabase.from("flags").select("id", { count: "exact", head: true }).eq("status", "open"),
   ]);
   const groups = [
@@ -33,7 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       title: "Operate",
       items: [
         { href: "/admin/review", label: "Review queue", icon: <Inbox />, badge: pending.count ?? 0 },
-        { href: "/admin/verification", label: "Verification", icon: <ShieldCheck />, badge: (verify.count ?? 0) + (audience.count ?? 0) },
+        { href: "/admin/verification", label: "Verification", icon: <ShieldCheck />, badge: verify.count ?? 0 },
         { href: "/admin/flags", label: "Fraud flags", icon: <Flag />, badge: flags.count ?? 0 },
         { href: "/admin/payouts", label: "Payouts", icon: <Banknote /> },
       ],

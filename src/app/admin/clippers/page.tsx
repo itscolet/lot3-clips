@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, money, shortDate } from "@/lib/format";
 import type { Platform } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -28,7 +29,7 @@ export default async function ClippersPage({ searchParams }: PageProps<"/admin/c
   const { supabase } = await requireAdmin();
   let query = supabase
     .from("profiles")
-    .select("id,username,role,status,trust,is_test,created_at,social_accounts(platform,verified_at,audience_status),submissions(status,views,earnings)")
+    .select(Q.clippers)
     .order("created_at", { ascending: false })
     .limit(500);
   if (q) query = query.ilike("username", `%${q}%`);

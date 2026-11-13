@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { money, shortDate } from "@/lib/format";
 import { PageHead } from "@/components/site/shell";
 import { FilterTabs, KPI, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
@@ -29,7 +30,7 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
   const { supabase } = await requireAdmin();
   const [{ data: led }, { data: hist }] = await Promise.all([
     supabase.rpc("payout_ledger", { p_include_test: true }),
-    supabase.from("payouts").select("id,amount,method,reference,status,created_at,is_test,profiles!payouts_user_id_fkey(id,username),campaigns(title)").order("created_at", { ascending: false }).limit(300),
+    supabase.from("payouts").select(Q.payoutHistory).order("created_at", { ascending: false }).limit(300),
   ]);
   const ledger = (led ?? []) as LedgerRow[];
   const owed = ledger.filter((l) => l.campaign_status === "complete" && Number(l.owed) > 0.004);

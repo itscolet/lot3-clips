@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { Q } from "@/lib/queries";
 import { compact, money, money0, shortDate } from "@/lib/format";
 import type { Campaign, Stats } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
@@ -13,7 +14,7 @@ export default async function AdminCampaigns({ searchParams }: PageProps<"/admin
   const sp = await searchParams;
   const status = typeof sp.status === "string" ? sp.status : "all";
   const { supabase } = await requireAdmin();
-  const { data } = await supabase.from("campaigns").select("*, clients(name)").order("created_at", { ascending: false });
+  const { data } = await supabase.from("campaigns").select(Q.campaignsWithClient).order("created_at", { ascending: false });
   const all = (data ?? []) as (Campaign & { clients: { name: string } | null })[];
   const list = status === "all" ? all : all.filter((c) => c.status === status);
   const stats = new Map<string, Stats>();
