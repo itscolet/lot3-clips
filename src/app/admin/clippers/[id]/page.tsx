@@ -5,7 +5,7 @@ import { Q } from "@/lib/queries";
 import { compact, money, PLATFORM_LABEL, shortDate, timeAgo } from "@/lib/format";
 import type { Platform, Profile, SocialAccount } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
-import { KPI, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { KPI, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { Avatar, Badge, Card, Empty, StatusBadge, TestBadge } from "@/components/ui/ui";
 import { PlatformIcon } from "@/components/ui/icons";
 import { ReviewButtons } from "@/components/admin/controls";
@@ -29,7 +29,7 @@ export default async function ClipperDetail({ params }: PageProps<"/admin/clippe
   const approved = rows.filter((r) => r.status === "approved");
   const decided = rows.filter((r) => r.status === "approved" || r.status === "rejected").length;
   const paid = (pays ?? []).filter((x) => x.status === "paid").reduce((a, x) => a + Number(x.amount), 0);
-  const btn = "h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
+  const btn = "h-10 md:h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
   const signed = new Map<string, string>();
   await Promise.all(
     accounts.map(async (a) => {
@@ -114,8 +114,22 @@ export default async function ClipperDetail({ params }: PageProps<"/admin/clippe
       )}
 
       <h2 className="mb-4 mt-10 text-[13px] font-medium uppercase tracking-[0.1em] text-mute">Clips</h2>
+      {rows.length > 0 && (
+        <MobileList>
+          {rows.map((r) => (
+            <MobileCard
+              key={r.id}
+              title={<span className="flex items-center gap-2"><PlatformIcon platform={r.platform} className="size-3.5 shrink-0" />{r.campaigns?.title}</span>}
+              sub={<a href={r.url} target="_blank" className="hover:text-ink">{r.url.replace(/^https?:\/\/(www\.)?/, "")}</a>}
+              right={<StatusBadge status={r.status} />}
+              stats={[[compact(r.views), "views"], [money(r.earnings), "earned"], [timeAgo(r.created_at), "submitted"]]}
+              footer={<div className="flex justify-end"><ReviewButtons id={r.id} status={r.status} compact={false} /></div>}
+            />
+          ))}
+        </MobileList>
+      )}
       {rows.length ? (
-        <Table>
+        <Table desktopOnly>
           <THead>
             <Th>Clip</Th>
             <Th>Campaign</Th>

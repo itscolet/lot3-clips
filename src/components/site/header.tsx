@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { Logo } from "@/components/ui/icons";
 import { LinkButton } from "@/components/ui/ui";
 import { NavLinks } from "./nav-links";
+import { MobileNav } from "./mobile-nav";
 
 export async function Header() {
   const { profile } = await getSession();
@@ -19,11 +20,11 @@ export async function Header() {
           {profile ? (
             <>
               {profile.role === "admin" && (
-                <LinkButton href="/admin" variant="ghost" size="sm">
+                <LinkButton href="/admin" variant="ghost" size="sm" className="max-md:hidden">
                   Admin
                 </LinkButton>
               )}
-              <LinkButton href="/dashboard" variant="secondary" size="sm">
+              <LinkButton href="/dashboard" variant="secondary" size="sm" className="max-md:hidden">
                 <span className="grid size-5 place-items-center rounded-full bg-ink text-[10px] font-semibold uppercase text-black">
                   {profile.username.slice(0, 1)}
                 </span>
@@ -32,7 +33,7 @@ export async function Header() {
             </>
           ) : (
             <>
-              <LinkButton href="/login" variant="ghost" size="sm">
+              <LinkButton href="/login" variant="ghost" size="sm" className="max-md:hidden">
                 Log in
               </LinkButton>
               <LinkButton href="/signup" size="sm">
@@ -40,6 +41,7 @@ export async function Header() {
               </LinkButton>
             </>
           )}
+          <MobileNav member={!!profile} admin={profile?.role === "admin"} />
         </div>
       </div>
     </header>

@@ -5,7 +5,7 @@ import { Q } from "@/lib/queries";
 import { compact, money, money0, timeAgo } from "@/lib/format";
 import type { Campaign, Platform, Stats, SubmissionStatus } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
-import { KPI, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { KPI, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { CampaignForm } from "@/components/admin/campaign-form";
 import { Tabs } from "@/components/ui/tabs";
 import { Card, Empty, LinkButton, Progress, StatusBadge, TestBadge } from "@/components/ui/ui";
@@ -52,12 +52,30 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
     <form action={setCampaignStatus}>
       <input type="hidden" name="id" value={c.id} />
       <input type="hidden" name="status" value={s} />
-      <button className={`h-9 rounded-full px-4 text-[12px] font-medium transition-colors duration-150 ${variant === "primary" ? "bg-ink text-black hover:bg-white" : "border border-line2 text-mute hover:text-ink"}`}>{label}</button>
+      <button className={`h-10 w-full rounded-full px-4 text-[12px] font-medium md:h-9 md:w-auto transition-colors duration-150 ${variant === "primary" ? "bg-ink text-black hover:bg-white" : "border border-line2 text-mute hover:text-ink"}`}>{label}</button>
     </form>
   );
 
   const clipsTab = rows.length ? (
-    <Table>
+    <>
+    <MobileList>
+      {rows.map((s) => (
+        <MobileCard
+          key={s.id}
+          title={<span className="flex items-center gap-2"><PlatformIcon platform={s.platform} className="size-3.5 shrink-0" />{s.profiles?.username ?? "—"} {s.is_test && <TestBadge />}</span>}
+          sub={<a href={s.url} target="_blank" className="hover:text-ink">{s.url.replace(/^https?:\/\/(www\.)?/, "")}</a>}
+          right={<StatusBadge status={s.status} />}
+          stats={[[compact(s.views), "views"], [compact(s.likes), "likes"], [money(s.earnings), "earned"]]}
+          footer={
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] text-dim">Checked {timeAgo(s.last_synced_at)}</span>
+              <div className="flex items-center gap-1.5"><ManualViews id={s.id} views={s.views} likes={s.likes} /><ReviewButtons id={s.id} status={s.status} /></div>
+            </div>
+          }
+        />
+      ))}
+    </MobileList>
+    <Table desktopOnly>
       <THead>
         <Th>Clip</Th>
         <Th>Clipper</Th>
@@ -97,6 +115,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
         ))}
       </TBody>
     </Table>
+    </>
   ) : (
     <Empty title="No clips yet" body="Submissions appear here as clippers post." />
   );
@@ -132,7 +151,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
       </div>
       <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_1fr]">
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-[13px] font-medium">Client report link</span>

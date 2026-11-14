@@ -19,9 +19,9 @@ export default async function PayoutsPage() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
             {[["Pending", b.pending], ["Available", b.available], ["Paid out", b.paid]].map(([l, v]) => (
-              <div key={l as string} className="bg-s1 p-5">
+              <div key={l as string} className="bg-s1 p-4 md:p-5">
                 <div className="text-[11px] uppercase tracking-[0.1em] text-dim">{l}</div>
-                <div className="num mt-2 text-[24px]">{money(v as number)}</div>
+                <div className="num mt-2 text-[17px] md:text-[24px]">{money(v as number)}</div>
               </div>
             ))}
           </div>

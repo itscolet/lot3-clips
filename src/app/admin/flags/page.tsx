@@ -42,7 +42,7 @@ export default async function FlagsPage({ searchParams }: PageProps<"/admin/flag
     .order("created_at", { ascending: false })
     .limit(200);
   const flags = (data ?? []) as unknown as F[];
-  const btn = "h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
+  const btn = "h-10 md:h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
 
   return (
     <>

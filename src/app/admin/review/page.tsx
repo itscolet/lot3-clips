@@ -48,15 +48,15 @@ export default async function ReviewPage({ searchParams }: PageProps<"/admin/rev
     <>
       <PageHead
         title="Review queue"
-        sub="J / K to move · A approve · R reject · O open clip"
+        sub={<><span className="max-md:hidden">J / K to move · A approve · R reject · O open clip</span><span className="md:hidden">Tap a clip to review it.</span></>}
         action={
-          <form className="flex items-center gap-2">
+          <form className="flex w-full items-center gap-2 md:w-auto">
             <input type="hidden" name="status" value={status} />
-            <select name="campaign" defaultValue={campaign} className="h-9 rounded-full border border-line2 bg-s1 px-3 text-[12px] text-mute outline-none">
+            <select name="campaign" defaultValue={campaign} className="h-10 min-w-0 flex-1 rounded-full border border-line2 bg-s1 px-3 text-[13px] text-mute outline-none md:h-9 md:flex-none md:text-[12px]">
               <option value="">All campaigns</option>
               {(camps ?? []).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
             </select>
-            <button className="h-9 rounded-full border border-line2 px-4 text-[12px] text-mute hover:text-ink">Filter</button>
+            <button className="h-10 shrink-0 rounded-full border border-line2 px-4 text-[12px] text-mute hover:text-ink md:h-9">Filter</button>
           </form>
         }
       />

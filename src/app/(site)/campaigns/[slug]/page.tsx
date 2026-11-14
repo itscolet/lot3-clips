@@ -48,7 +48,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
         <div className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink/90">{c.description || "Brief coming soon."}</div>
       </Card>
       <Card className="p-6">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {[
             ["Submitted", stats.submitted],
             ["Approved", stats.approved],
@@ -130,17 +130,17 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
     <Card className="p-6">
       {leaders.length ? (
         <>
-          <div className="grid grid-cols-3 items-end gap-3">
+          <div className="grid grid-cols-3 items-end gap-2 sm:gap-3">
             {[1, 0, 2].map((i) =>
               leaders[i] ? (
                 <div
                   key={i}
-                  className={`flex flex-col items-center gap-2 rounded-2xl border border-line bg-s2 p-5 text-center ${i === 0 ? "pb-8 pt-7" : ""}`}
+                  className={`flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-line bg-s2 p-3 text-center sm:p-5 ${i === 0 ? "pb-8 pt-7" : ""}`}
                 >
                   <span className={`num grid size-9 place-items-center rounded-full ${i === 0 ? "bg-ink text-black" : "border border-line2 text-mute"} text-[14px]`}>
                     {i + 1}
                   </span>
-                  <span className="mt-1 text-[14px] font-medium">{leaders[i].username}</span>
+                  <span className="mt-1 w-full truncate text-[13px] font-medium sm:text-[14px]">{leaders[i].username}</span>
                   <span className="num text-[12px] text-mute">{compact(leaders[i].views)} views</span>
                   <span className="num text-[13px]">{money(leaders[i].earned)}</span>
                 </div>
@@ -149,7 +149,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
               ),
             )}
           </div>
-          <table className="mt-6 w-full text-[13px]">
+          <div className="-mx-6 mt-6 overflow-x-auto px-6"><table className="w-full min-w-[420px] text-[13px]">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-dim">
                 <th className="py-2 font-medium">#</th>
@@ -175,7 +175,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </>
       ) : (
         <p className="py-10 text-center text-[14px] text-mute">No approved clips yet. First in gets the top spot.</p>
@@ -184,7 +184,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
   );
 
   return (
-    <div className="mx-auto max-w-[1240px] px-5 pt-10">
+    <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-5 md:pt-10">
       <nav className="mb-6 flex items-center gap-2 text-[12px] text-dim">
         <Link href="/campaigns" className="hover:text-ink">Your invitations</Link>
         <span>/</span>
@@ -193,7 +193,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="min-w-0">
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <h1 className="text-[40px] font-medium leading-none tracking-[-0.04em]">{c.title}</h1>
+            <h1 className="text-[32px] font-medium leading-none tracking-[-0.04em] md:text-[40px]">{c.title}</h1>
             <StatusBadge status={c.status} />
             {c.is_test && <TestBadge />}
           </div>
@@ -210,8 +210,8 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
           />
         </div>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <CampaignCover title={c.title} slug={c.slug} cover={c.cover_url} label={c.label} className="aspect-[4/3] rounded-2xl border border-line" big />
+        <aside className="order-first flex flex-col gap-4 lg:order-none lg:sticky lg:top-24 lg:self-start">
+          <CampaignCover title={c.title} slug={c.slug} cover={c.cover_url} label={c.label} className="aspect-[16/9] rounded-2xl border border-line lg:aspect-[4/3]" big />
           <Card className="divide-y divide-line">
             <div className="flex items-center justify-between p-5">
               <span className="text-[13px] text-mute">Rate per 1K views</span>

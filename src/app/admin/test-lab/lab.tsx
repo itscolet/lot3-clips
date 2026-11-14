@@ -40,7 +40,7 @@ export function Lab({
             <label className="flex items-center gap-2 text-[12px] text-mute">
               <input type="checkbox" name="keep" value="true" className="accent-white" /> Keep test data afterwards
             </label>
-            <Input name="live_url" placeholder="Live test URL (optional TikTok/IG post)" className="ml-auto h-9 w-72 text-[12px]" />
+            <Input name="live_url" placeholder="Live test URL (optional TikTok/IG post)" className="h-10 w-full text-[16px] md:ml-auto md:h-9 md:w-72 md:text-[12px]" />
           </ActionForm>
           {report && (
             <div className="flex items-center gap-6 border-b border-line bg-s2/50 px-5 py-3 text-[12px]">

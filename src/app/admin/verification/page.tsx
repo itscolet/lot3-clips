@@ -28,7 +28,7 @@ export default async function VerificationPage() {
       if (data?.signedUrl) signed.set(a.id, data.signedUrl);
     }),
   );
-  const btn = "h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
+  const btn = "h-10 md:h-8 rounded-full px-3.5 text-[12px] font-medium transition-colors duration-150";
 
   return (
     <>
@@ -53,7 +53,7 @@ export default async function VerificationPage() {
               <AutoCheck id={a.id} />
               <form action={reviewAccount} className="flex items-center gap-2">
                 <input type="hidden" name="id" value={a.id} />
-                <input name="followers" placeholder="Followers" className="h-8 w-24 rounded-full border border-line2 bg-s2 px-3 text-[12px] outline-none" />
+                <input name="followers" placeholder="Followers" inputMode="numeric" className="h-10 w-28 rounded-full border border-line2 bg-s2 px-3 text-[16px] outline-none md:h-8 md:w-24 md:text-[12px]" />
                 <button name="op" value="verify" className={`${btn} bg-ink text-black hover:bg-white`}>Mark verified</button>
               </form>
             </Card>
@@ -87,7 +87,7 @@ export default async function VerificationPage() {
                 </div>
                 <form action={reviewAccount} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="id" value={a.id} />
-                  <input name="us_pct" type="number" min="0" max="100" placeholder="US %" className="h-8 w-20 rounded-full border border-line2 bg-s2 px-3 text-[12px] outline-none" />
+                  <input name="us_pct" type="number" min="0" max="100" placeholder="US %" inputMode="numeric" className="h-10 w-24 rounded-full border border-line2 bg-s2 px-3 text-[16px] outline-none md:h-8 md:w-20 md:text-[12px]" />
                   <button name="op" value="audience_approve" className={`${btn} bg-ink text-black hover:bg-white`}>Approve</button>
                   <button name="op" value="audience_reject" className={`${btn} border border-line2 text-mute hover:text-ink`}>Reject</button>
                 </form>

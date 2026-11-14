@@ -10,7 +10,7 @@ const variants = {
   ghost: "text-mute hover:text-ink hover:bg-s2",
   danger: "bg-transparent text-ink border border-line2 hover:bg-ink hover:text-black",
 } as const;
-const sizes = { sm: "h-8 px-3.5", md: "h-10 px-5", lg: "h-12 px-7 text-[14px]" } as const;
+const sizes = { sm: "h-9 md:h-8 px-3.5", md: "h-11 md:h-10 px-5", lg: "h-12 px-7 text-[14px]" } as const;
 
 export type BtnProps = { variant?: keyof typeof variants; size?: keyof typeof sizes };
 
@@ -147,16 +147,16 @@ export function Field({
 }
 
 const inputCls =
-  "w-full rounded-xl border border-line2 bg-s2 px-3.5 text-[14px] text-ink placeholder:text-dim outline-none transition-[border,background] duration-150 focus:border-[#555] focus:bg-s3";
+  "w-full rounded-xl border border-line2 bg-s2 px-3.5 text-[16px] md:text-[14px] text-ink placeholder:text-dim outline-none transition-[border,background] duration-150 focus:border-[#555] focus:bg-s3";
 
 export function Input({ className, ...p }: ComponentProps<"input">) {
-  return <input {...p} className={cn(inputCls, "h-11", className)} />;
+  return <input {...p} className={cn(inputCls, "h-12 md:h-11", className)} />;
 }
 export function Textarea({ className, ...p }: ComponentProps<"textarea">) {
   return <textarea {...p} className={cn(inputCls, "min-h-28 py-3 leading-relaxed", className)} />;
 }
 export function Select({ className, ...p }: ComponentProps<"select">) {
-  return <select {...p} className={cn(inputCls, "h-11 appearance-none pr-8", className)} />;
+  return <select {...p} className={cn(inputCls, "h-12 md:h-11 appearance-none pr-8", className)} />;
 }
 
 export function Empty({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {

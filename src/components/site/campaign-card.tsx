@@ -56,12 +56,12 @@ export function CampaignCover({
         </>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" />
-      <div className="absolute inset-x-0 top-0 z-[2] p-4">
+      <div className="absolute inset-x-0 top-0 z-[2] p-3 sm:p-4">
         {label && <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-mute">{label}</span>}
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-[2] p-4">
+      <div className="absolute inset-x-0 bottom-0 z-[2] p-3 sm:p-4">
         <span
-          className={`block font-serif leading-[0.92] tracking-[-0.01em] text-ink ${big ? "text-[56px]" : "text-[34px]"}`}
+          className={`block font-serif leading-[0.92] tracking-[-0.01em] text-ink ${big ? "text-[44px] md:text-[56px]" : "text-[26px] sm:text-[34px]"}`}
         >
           {title}
         </span>
@@ -89,7 +89,7 @@ export function CampaignCard({ c }: { c: Card }) {
       className="group sweep block overflow-hidden rounded-2xl border border-line bg-s1 transition-[border,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[#3a3a3a]"
     >
       <CampaignCover title={c.title} slug={c.slug} cover={c.cover_url} label={c.label} className="aspect-[4/5]" />
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-3 p-3 sm:p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {c.status === "live" ? (
@@ -103,12 +103,12 @@ export function CampaignCard({ c }: { c: Card }) {
           </div>
           <PlatformRow platforms={c.platforms} />
         </div>
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="num text-[22px] leading-none">{money(c.cpm)}</div>
+            <div className="num text-[20px] leading-none sm:text-[22px]">{money(c.cpm)}</div>
             <div className="mt-1 text-[11px] text-dim">per 1K views</div>
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <div className="num text-[13px] text-ink">{money0(left)}</div>
             <div className="mt-1 text-[11px] text-dim">of {money0(c.budget)} left</div>
           </div>

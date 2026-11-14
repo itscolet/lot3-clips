@@ -13,19 +13,19 @@ export default async function LeaderboardPage() {
   const rows = (data ?? []) as Leader[];
   const podium = [rows[1], rows[0], rows[2]];
   return (
-    <div className="mx-auto max-w-[1000px] px-5 pt-16">
+    <div className="mx-auto max-w-[1000px] px-4 pt-10 sm:px-5 md:pt-16">
       <Reveal>
         <h1 className="text-center text-[44px] font-medium tracking-[-0.04em]">Leaderboard</h1>
         <p className="mt-2 text-center text-[14px] text-mute">Top clippers by verified views, all campaigns.</p>
       </Reveal>
       {rows.length ? (
         <>
-          <Stagger className="mt-14 grid grid-cols-3 items-end gap-4">
+          <Stagger className="mt-10 grid grid-cols-3 items-end gap-2 sm:gap-4 md:mt-14">
             {podium.map((l, i) =>
               l ? (
                 <StaggerItem key={l.user_id}>
                   <div
-                    className={`grain flex flex-col items-center gap-3 rounded-3xl border border-line bg-gradient-to-b from-[#161616] to-black px-4 text-center ${
+                    className={`grain flex min-w-0 flex-col items-center gap-3 rounded-3xl border border-line bg-gradient-to-b from-[#161616] to-black px-2 text-center sm:px-4 ${
                       i === 1 ? "py-12" : "py-8"
                     }`}
                   >
@@ -33,7 +33,7 @@ export default async function LeaderboardPage() {
                       {i === 1 ? 1 : i === 0 ? 2 : 3}
                     </span>
                     <Avatar name={l.username} src={l.avatar_url} size={i === 1 ? 64 : 52} />
-                    <span className="text-[15px] font-medium">{l.username}</span>
+                    <span className="w-full truncate text-[13px] font-medium sm:text-[15px]">{l.username}</span>
                     <div className="grid w-full grid-cols-2 gap-2 text-[11px] text-dim">
                       <div>
                         <div className="num text-[16px] text-ink">{compact(l.views)}</div>views
@@ -50,8 +50,8 @@ export default async function LeaderboardPage() {
             )}
           </Stagger>
           <Reveal delay={0.1}>
-            <Card className="mt-10 overflow-hidden">
-              <table className="w-full text-[13px]">
+            <Card className="mt-10 overflow-x-auto">
+              <table className="w-full min-w-[480px] text-[13px]">
                 <thead className="border-b border-line bg-s2 text-left text-[11px] uppercase tracking-[0.08em] text-dim">
                   <tr>
                     <th className="px-5 py-3 font-medium">Rank</th>

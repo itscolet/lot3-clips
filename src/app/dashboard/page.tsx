@@ -79,17 +79,41 @@ export default async function DashboardHome() {
           ["Paid out", <CountUp key="o" value={Number(b.paid)} format="money" />, "All time"],
           ["Verified views", <CountUp key="v" value={views} format="compact" />, `${rows.filter((r) => r.status === "approved").length} approved clips`],
         ].map(([l, v, s]) => (
-          <div key={l as string} className="bg-s1 p-6">
+          <div key={l as string} className="bg-s1 p-4 md:p-6">
             <div className="text-[11px] uppercase tracking-[0.1em] text-dim">{l}</div>
-            <div className="mt-2.5 text-[28px] leading-none">{v}</div>
+            <div className="mt-2.5 text-[22px] leading-none md:text-[28px]">{v}</div>
             <div className="mt-2 text-[12px] text-mute">{s}</div>
           </div>
         ))}
       </div>
 
       <h2 className="mb-4 mt-10 text-[13px] font-medium uppercase tracking-[0.1em] text-mute">Your clips</h2>
+      {rows.length > 0 && (
+        <div className="flex flex-col gap-2 md:hidden">
+          {rows.map((r) => (
+            <div key={r.id} className="rounded-2xl border border-line bg-s1 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <a href={r.url} target="_blank" className="flex min-w-0 items-center gap-2 text-[13px] text-mute">
+                  <PlatformIcon platform={r.platform} className="size-4 shrink-0 text-ink" />
+                  <span className="truncate">{r.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                </a>
+                <StatusBadge status={r.status} />
+              </div>
+              {r.campaigns && (
+                <Link href={`/campaigns/${r.campaigns.slug}`} className="mt-2 block text-[14px] font-medium">{r.campaigns.title}</Link>
+              )}
+              {r.reject_reason && <div className="mt-1 text-[12px] text-dim">{r.reject_reason}</div>}
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3 text-[11px] text-dim">
+                <div><div className="num text-[15px] text-ink">{compact(r.views)}</div>views</div>
+                <div><div className="num text-[15px] text-ink">{money(r.earnings)}</div>earned</div>
+                <div className="text-right"><div className="text-[12px] text-mute">{timeAgo(r.created_at)}</div>submitted</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {rows.length ? (
-        <Card className="overflow-hidden">
+        <Card className="hidden overflow-hidden md:block">
           <table className="w-full text-[13px]">
             <thead className="border-b border-line bg-s2 text-left text-[11px] uppercase tracking-[0.08em] text-dim">
               <tr>

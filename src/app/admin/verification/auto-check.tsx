@@ -15,7 +15,7 @@ export function AutoCheck({ id }: { id: string }) {
             setMsg(r);
           })
         }
-        className="h-8 rounded-full border border-line2 px-3.5 text-[12px] text-mute transition-colors hover:text-ink disabled:opacity-40"
+        className="h-10 rounded-full border border-line2 px-3.5 text-[12px] text-mute transition-colors hover:text-ink disabled:opacity-40 md:h-8"
       >
         {pending ? "Checking bio…" : "Check bio"}
       </button>

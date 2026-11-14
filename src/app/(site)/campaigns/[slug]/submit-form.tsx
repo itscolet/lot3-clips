@@ -7,6 +7,7 @@ import { SubmitButton, ActionForm } from "@/components/ui/motion";
 import { Input, LinkButton } from "@/components/ui/ui";
 import { FormNote } from "@/components/ui/form-note";
 import type { Platform, SocialAccount } from "@/lib/types";
+import { PLATFORM_LABEL } from "@/lib/format";
 
 export function SubmitClipForm({
   campaignId,
@@ -35,7 +36,7 @@ export function SubmitClipForm({
     return (
       <div className="flex flex-col gap-3 text-center">
         <p className="text-[13px] leading-relaxed text-mute">
-          Connect and verify a {platforms.map((p) => p).join(" or ")} account
+          Connect and verify a {platforms.map((p) => PLATFORM_LABEL[p]).join(" or ")} account
           {usOnly ? ", and get your US audience screenshot approved," : ""} to submit clips.
         </p>
         <LinkButton href="/dashboard/accounts">Connect account</LinkButton>

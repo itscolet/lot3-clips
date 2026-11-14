@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { compact, money, money0, timeAgo } from "@/lib/format";
 import type { Campaign } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
-import { KPI, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { KPI, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { Card, LinkButton, Progress, StatusBadge, TestBadge } from "@/components/ui/ui";
 
 function hoursAgo(h: number) {
@@ -92,8 +92,26 @@ export default async function AdminHome() {
       </div>
 
       <h2 className="mb-4 mt-10 text-[13px] font-medium uppercase tracking-[0.1em] text-mute">Live campaign pacing</h2>
+      {campaigns.length > 0 && (
+        <MobileList>
+          {campaigns.map((c) => {
+            const st = stats.get(c.id);
+            return (
+              <MobileCard
+                key={c.id}
+                href={`/admin/campaigns/${c.id}`}
+                title={<span className="flex items-center gap-2">{c.title} {c.is_test && <TestBadge />}</span>}
+                sub={`${money(c.cpm)} CPM · ${money0(st?.spent ?? 0)} of ${money0(c.budget)}`}
+                right={<StatusBadge status={c.status} />}
+                stats={[[compact(st?.total_views ?? 0), "views"], [st?.approved ?? 0, "clips"], [st?.pending ?? 0, "pending"]]}
+                footer={<Progress value={Number(st?.spent ?? 0)} max={Number(c.budget)} />}
+              />
+            );
+          })}
+        </MobileList>
+      )}
       {campaigns.length ? (
-        <Table>
+        <Table desktopOnly>
           <THead>
             <Th>Campaign</Th>
             <Th>Status</Th>

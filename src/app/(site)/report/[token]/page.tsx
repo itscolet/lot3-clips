@@ -28,7 +28,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[token]"
   const effCpm = r.stats.total_views ? (Number(r.stats.spent) / r.stats.total_views) * 1000 : 0;
 
   return (
-    <div className="mx-auto max-w-[1100px] px-5 pt-14">
+    <div className="mx-auto max-w-[1100px] px-4 pt-8 sm:px-5 md:pt-14">
       <Reveal>
         <div className="flex flex-wrap items-center gap-3 text-[12px] text-dim">
           <span className="uppercase tracking-[0.12em]">Campaign report</span>
@@ -37,7 +37,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[token]"
           {c.is_test && <TestBadge />}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          <h1 className="text-[48px] font-medium leading-none tracking-[-0.045em]">{c.title}</h1>
+          <h1 className="text-[34px] font-medium leading-none tracking-[-0.045em] md:text-[48px]">{c.title}</h1>
           <StatusBadge status={c.status} />
         </div>
         <p className="mt-3 text-[14px] text-mute">
@@ -54,9 +54,9 @@ export default async function ReportPage({ params }: PageProps<"/report/[token]"
             ["Clippers", <CountUp key="k" value={r.stats.clippers} />],
             ["Like rate", <span key="e" className="num">{eng.toFixed(1)}%</span>],
           ].map(([l, v]) => (
-            <div key={l as string} className="bg-black p-6">
+            <div key={l as string} className="bg-black p-5 md:p-6">
               <div className="text-[11px] uppercase tracking-[0.1em] text-dim">{l}</div>
-              <div className="mt-2 text-[34px] leading-none">{v}</div>
+              <div className="mt-2 text-[26px] leading-none md:text-[34px]">{v}</div>
             </div>
           ))}
         </div>
@@ -92,12 +92,12 @@ export default async function ReportPage({ params }: PageProps<"/report/[token]"
       </div>
 
       <Reveal delay={0.14}>
-        <Card className="mt-5 overflow-hidden">
+        <Card className="mt-5 overflow-x-auto">
           <div className="border-b border-line px-6 py-4 text-[12px] font-medium uppercase tracking-[0.1em] text-dim">
             Clips ({r.clips.length})
           </div>
           {r.clips.length ? (
-            <table className="w-full text-[13px]">
+            <table className="w-full min-w-[640px] text-[13px]">
               <thead className="text-left text-[11px] uppercase tracking-[0.08em] text-dim">
                 <tr className="border-b border-line">
                   <th className="px-6 py-3 font-medium">Clip</th>

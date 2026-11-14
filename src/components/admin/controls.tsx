@@ -10,7 +10,7 @@ export function CopyField({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex items-center gap-2 rounded-xl border border-line2 bg-s2 p-1.5 pl-3.5">
-      <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-mute">{value}</span>
+      <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-mute md:text-[12px]">{value}</span>
       <button
         type="button"
         onClick={() => {
@@ -67,7 +67,7 @@ export function ReviewButtons({ id, status, compact = true }: { id: string; stat
       await reviewSubmission(fd);
       setOpen(false);
     });
-  const b = "h-7 rounded-full px-3 text-[11px] font-medium transition-colors duration-150 disabled:opacity-40";
+  const b = "h-9 md:h-7 rounded-full px-3.5 md:px-3 text-[12px] md:text-[11px] font-medium transition-colors duration-150 disabled:opacity-40";
   return (
     <div className="relative flex items-center gap-1.5">
       {status !== "approved" && (
@@ -109,7 +109,7 @@ export function ManualViews({ id, views, likes }: { id: string; views: number; l
   }, null);
   return (
     <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="h-7 rounded-full px-2.5 text-[11px] text-dim transition-colors hover:text-ink" title="Edit views manually">
+      <button onClick={() => setOpen((o) => !o)} className="h-9 rounded-full px-2.5 text-[12px] text-dim transition-colors hover:text-ink md:h-7 md:text-[11px]" title="Edit views manually">
         Edit views
       </button>
       <AnimatePresence>

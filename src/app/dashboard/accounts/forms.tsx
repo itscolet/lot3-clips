@@ -60,7 +60,7 @@ export function AccountCard({ a }: { a: SocialAccount }) {
       {!verified && (
         <div className="mt-5 rounded-xl border border-line bg-s2 p-4">
           <div className="text-[12px] text-mute">Put this code in your bio</div>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <code className="num rounded-lg border border-line2 bg-black px-3 py-2 text-[18px] tracking-[0.08em]">{a.verify_code}</code>
             <button
               type="button"
@@ -95,9 +95,9 @@ export function AccountCard({ a }: { a: SocialAccount }) {
           {a.audience_status === "none" && <span className="text-dim">Not submitted</span>}
         </div>
         {a.audience_status !== "approved" && (
-          <ActionForm action={uAction} className="flex items-center gap-2">
+          <ActionForm action={uAction} className="flex w-full items-center gap-2 sm:w-auto">
             <input type="hidden" name="id" value={a.id} />
-            <Input type="file" name="file" accept="image/*" className="h-9 w-56 py-1.5 text-[12px] file:mr-3 file:rounded-full file:border-0 file:bg-s3 file:px-3 file:py-1 file:text-[12px] file:text-ink" />
+            <Input type="file" name="file" accept="image/*" className="h-10 min-w-0 flex-1 py-1.5 text-[12px] sm:w-56 sm:flex-none file:mr-3 file:rounded-full file:border-0 file:bg-s3 file:px-3 file:py-1 file:text-[12px] file:text-ink" />
             <SubmitButton size="sm" variant="secondary" pendingText="Uploading">Upload</SubmitButton>
           </ActionForm>
         )}

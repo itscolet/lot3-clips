@@ -4,7 +4,7 @@ import { Q } from "@/lib/queries";
 import { compact, money, shortDate } from "@/lib/format";
 import type { Platform } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
-import { FilterTabs, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { FilterTabs, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { Avatar, Badge, Empty, StatusBadge, TestBadge } from "@/components/ui/ui";
 import { PlatformIcon } from "@/components/ui/icons";
 
@@ -51,8 +51,8 @@ export default async function ClippersPage({ searchParams }: PageProps<"/admin/c
         title="Clippers"
         sub="Everyone who's signed up, with their accounts, output and earnings."
         action={
-          <form className="flex gap-2">
-            <input name="q" defaultValue={q} placeholder="Search username" className="h-9 w-56 rounded-full border border-line2 bg-s1 px-4 text-[12px] outline-none placeholder:text-dim focus:border-[#555]" />
+          <form className="flex w-full gap-2 md:w-auto">
+            <input name="q" defaultValue={q} placeholder="Search username" className="h-10 w-full rounded-full border border-line2 bg-s1 px-4 text-[16px] md:h-9 md:w-56 md:text-[12px] outline-none placeholder:text-dim focus:border-[#555]" />
           </form>
         }
       />
@@ -65,8 +65,25 @@ export default async function ClippersPage({ searchParams }: PageProps<"/admin/c
           { key: "banned", label: "Banned", count: counts.banned, href: "?f=banned" },
         ]}
       />
+      {rows.length > 0 && (
+        <MobileList>
+          {rows.map((r) => {
+            const appr = r.submissions.filter((s) => s.status === "approved");
+            return (
+              <MobileCard
+                key={r.id}
+                href={`/admin/clippers/${r.id}`}
+                title={<span className="flex items-center gap-2">{r.username} {r.role === "admin" && <Badge tone="outline">admin</Badge>} {r.is_test && <TestBadge />}</span>}
+                sub={<span className="flex items-center gap-2">{r.social_accounts.length ? r.social_accounts.map((a, i) => <span key={i} className={a.verified_at ? "text-ink" : "text-dim"}><PlatformIcon platform={a.platform} /></span>) : "No accounts"} · joined {shortDate(r.created_at)}</span>}
+                right={r.trust !== "normal" ? <Badge tone={r.trust === "watch" ? "solid" : "outline"}>{r.trust}</Badge> : <StatusBadge status={r.status} />}
+                stats={[[appr.length, "approved"], [compact(appr.reduce((a, s) => a + Number(s.views), 0)), "views"], [money(appr.reduce((a, s) => a + Number(s.earnings), 0)), "earned"]]}
+              />
+            );
+          })}
+        </MobileList>
+      )}
       {rows.length ? (
-        <Table>
+        <Table desktopOnly>
           <THead>
             <Th>Clipper</Th>
             <Th>Accounts</Th>

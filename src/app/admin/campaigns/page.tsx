@@ -4,7 +4,7 @@ import { Q } from "@/lib/queries";
 import { compact, money, money0, shortDate } from "@/lib/format";
 import type { Campaign, Stats } from "@/lib/types";
 import { PageHead } from "@/components/site/shell";
-import { FilterTabs, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { FilterTabs, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { Empty, LinkButton, Progress, StatusBadge, TestBadge } from "@/components/ui/ui";
 import { PlatformRow } from "@/components/site/campaign-card";
 
@@ -39,8 +39,26 @@ export default async function AdminCampaigns({ searchParams }: PageProps<"/admin
           { key: "complete", label: "Complete", count: count("complete"), href: "?status=complete" },
         ]}
       />
+      {list.length > 0 && (
+        <MobileList>
+          {list.map((c) => {
+            const st = stats.get(c.id);
+            return (
+              <MobileCard
+                key={c.id}
+                href={`/admin/campaigns/${c.id}`}
+                title={<span className="flex items-center gap-2">{c.title} {c.is_test && <TestBadge />}</span>}
+                sub={`${c.clients?.name ?? "No client"} · ${money(c.cpm)} CPM`}
+                right={<StatusBadge status={c.status} />}
+                stats={[[money0(st?.spent ?? 0), `of ${money0(c.budget)}`], [compact(st?.total_views ?? 0), "views"], [`${st?.approved ?? 0} / ${st?.pending ?? 0}`, "approved / pending"]]}
+                footer={<Progress value={Number(st?.spent ?? 0)} max={Number(c.budget)} />}
+              />
+            );
+          })}
+        </MobileList>
+      )}
       {list.length ? (
-        <Table>
+        <Table desktopOnly>
           <THead>
             <Th>Campaign</Th>
             <Th>Client</Th>

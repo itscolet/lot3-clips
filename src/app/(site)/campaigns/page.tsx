@@ -22,16 +22,16 @@ export default async function CampaignsPage() {
   const name = profile?.display_name ?? profile?.username ?? "";
 
   return (
-    <div className="mx-auto max-w-[1240px] px-5 pt-14">
+    <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-5 md:pt-14">
       <Reveal>
-        <div className="grain relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#191919] via-[#0b0b0b] to-black px-7 py-10 md:px-10">
+        <div className="grain relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#191919] via-[#0b0b0b] to-black px-6 py-8 md:px-10 md:py-10">
           <div className="relative z-[2] flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
               <span className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em] text-mute">
                 <span className="live-dot size-1.5 rounded-full bg-ink" />
                 {live.length ? (name ? `${name}, you've been invited` : "You've been invited") : "Invitations"}
               </span>
-              <h1 className="mt-4 text-[40px] font-medium leading-[1.02] tracking-[-0.04em] md:text-[52px]">
+              <h1 className="mt-4 text-[32px] font-medium leading-[1.04] tracking-[-0.04em] md:text-[52px]">
                 {live.length ? (
                   <>
                     You&apos;ve been invited to{" "}

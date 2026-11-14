@@ -8,9 +8,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const groups = [
     {
       items: [
-        { href: "/dashboard", label: "Overview", icon: <LayoutGrid />, exact: true },
-        { href: "/campaigns", label: "Invitations", icon: <Megaphone /> },
-        { href: "/dashboard/accounts", label: "Connected accounts", icon: <Link2 /> },
+        { href: "/dashboard", label: "Overview", short: "Home", icon: <LayoutGrid />, exact: true },
+        { href: "/campaigns", label: "Invitations", short: "Invites", icon: <Megaphone /> },
+        { href: "/dashboard/accounts", label: "Connected accounts", short: "Accounts", icon: <Link2 /> },
         { href: "/dashboard/payouts", label: "Payouts", icon: <Banknote /> },
         { href: "/dashboard/settings", label: "Settings", icon: <Settings /> },
       ],
@@ -20,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <Shell
       id="dash"
+      mobileTabs={["/dashboard", "/campaigns", "/dashboard/accounts", "/dashboard/payouts"]}
       groups={groups}
       footer={
         <div className="flex items-center gap-3 px-2 py-1">

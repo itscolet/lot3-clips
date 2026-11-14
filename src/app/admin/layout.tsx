@@ -31,8 +31,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     {
       title: "Operate",
       items: [
-        { href: "/admin/review", label: "Review queue", icon: <Inbox />, badge: pending.count ?? 0 },
-        { href: "/admin/verification", label: "Verification", icon: <ShieldCheck />, badge: verify.count ?? 0 },
+        { href: "/admin/review", label: "Review queue", short: "Review", icon: <Inbox />, badge: pending.count ?? 0 },
+        { href: "/admin/verification", label: "Verification", short: "Verify", icon: <ShieldCheck />, badge: verify.count ?? 0 },
         { href: "/admin/flags", label: "Fraud flags", icon: <Flag />, badge: flags.count ?? 0 },
         { href: "/admin/payouts", label: "Payouts", icon: <Banknote /> },
       ],
@@ -57,6 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <Shell
       id="admin"
+      mobileTabs={["/admin", "/admin/review", "/admin/verification", "/admin/campaigns"]}
       groups={groups}
       badge={<span className="rounded border border-line2 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em] text-mute">Admin</span>}
       footer={

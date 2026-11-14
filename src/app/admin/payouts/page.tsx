@@ -3,10 +3,10 @@ import { requireAdmin } from "@/lib/auth";
 import { Q } from "@/lib/queries";
 import { money, shortDate } from "@/lib/format";
 import { PageHead } from "@/components/site/shell";
-import { FilterTabs, KPI, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
+import { FilterTabs, KPI, MobileCard, MobileList, Table, TBody, Td, Th, THead, Tr } from "@/components/admin/table";
 import { Empty, LinkButton, StatusBadge, TestBadge } from "@/components/ui/ui";
 import { voidPayout } from "../actions";
-import { PayRow } from "./pay-row";
+import { PayCard, PayRow } from "./pay-row";
 
 export const metadata = { title: "Payouts" };
 
@@ -67,7 +67,9 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
 
       {tab === "owed" &&
         (owed.length ? (
-          <Table>
+          <>
+          <MobileList>{owed.map((l) => <PayCard key={l.user_id + l.campaign_id} l={l} />)}</MobileList>
+          <Table desktopOnly>
             <THead>
               <Th>Clipper</Th>
               <Th>Campaign</Th>
@@ -81,13 +83,20 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
               {owed.map((l) => <PayRow key={l.user_id + l.campaign_id} l={l} />)}
             </TBody>
           </Table>
+          </>
         ) : (
           <Empty title="Nobody is owed right now" body="Complete a campaign to unlock its earnings for payout." />
         ))}
 
       {tab === "accruing" &&
         (accruing.length ? (
-          <Table>
+          <>
+          <MobileList>
+            {accruing.map((l) => (
+              <MobileCard key={l.user_id + l.campaign_id} href={`/admin/clippers/${l.user_id}`} title={l.username} sub={l.campaign_title} right={<span className="num text-[15px]">{money(l.owed)}</span>} />
+            ))}
+          </MobileList>
+          <Table desktopOnly>
             <THead>
               <Th>Clipper</Th>
               <Th>Campaign</Th>
@@ -105,13 +114,36 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
               ))}
             </TBody>
           </Table>
+          </>
         ) : (
           <Empty title="No live earnings yet" />
         ))}
 
       {tab === "history" &&
         (history.length ? (
-          <Table>
+          <>
+          <MobileList>
+            {history.map((h) => (
+              <MobileCard
+                key={h.id}
+                title={<span className={h.status === "void" ? "line-through opacity-60" : ""}>{h.profiles?.username}</span>}
+                sub={`${h.campaigns?.title ?? "—"} · ${shortDate(h.created_at)} · ${h.method ?? "—"}${h.reference ? ` · ${h.reference}` : ""}`}
+                right={<span className="num text-[15px]">{money(h.amount)}</span>}
+                footer={
+                  <div className="flex items-center justify-between">
+                    <StatusBadge status={h.status} />
+                    {h.status === "paid" && (
+                      <form action={voidPayout}>
+                        <input type="hidden" name="id" value={h.id} />
+                        <button className="h-9 rounded-full border border-line2 px-4 text-[12px] text-mute">Void</button>
+                      </form>
+                    )}
+                  </div>
+                }
+              />
+            ))}
+          </MobileList>
+          <Table desktopOnly>
             <THead>
               <Th>Date</Th>
               <Th>Clipper</Th>
@@ -144,6 +176,7 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
               ))}
             </TBody>
           </Table>
+          </>
         ) : (
           <Empty title="No payments recorded yet" />
         ))}
