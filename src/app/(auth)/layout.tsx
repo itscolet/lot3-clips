@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="italic text-mute">Paid per view.</span>
             </p>
             <p className="mt-6 max-w-sm text-[14px] leading-relaxed text-mute">
-              Music, film and brand campaigns from LOT3 Media. Post on your own page, keep your audience, get paid for the views.
+              Invite-only music, film and brand campaigns from LOT3 Media. Post on your own page, keep your audience, get paid for the views.
             </p>
           </div>
         </div>

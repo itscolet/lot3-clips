@@ -22,7 +22,7 @@ type Row = {
 
 export default async function DashboardHome() {
   const { supabase, profile } = await requireUser();
-  const [{ data: bal }, { data: subs }, { count: accCount }] = await Promise.all([
+  const [{ data: bal }, { data: subs }, { count: accCount }, { data: cards }] = await Promise.all([
     supabase.rpc("my_balance").single<{ pending: number; available: number; paid: number }>(),
     supabase
       .from("submissions")
@@ -31,7 +31,9 @@ export default async function DashboardHome() {
       .order("created_at", { ascending: false })
       .limit(100),
     supabase.from("social_accounts").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
+    supabase.rpc("campaign_cards"),
   ]);
+  const invites = ((cards ?? []) as { status: string; title: string }[]).filter((c) => c.status === "live");
   const rows = (subs ?? []) as unknown as Row[];
   const views = rows.filter((r) => r.status === "approved").reduce((a, r) => a + Number(r.views), 0);
   const b = bal ?? { pending: 0, available: 0, paid: 0 };
@@ -41,8 +43,24 @@ export default async function DashboardHome() {
       <PageHead
         title={`Hey ${profile.display_name ?? profile.username}`}
         sub="Your clips, views and earnings."
-        action={<LinkButton href="/campaigns">Find a campaign</LinkButton>}
+        action={<LinkButton href="/campaigns">Your invitations</LinkButton>}
       />
+
+      <Link
+        href="/campaigns"
+        className="grain group relative mb-6 flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-line bg-gradient-to-r from-[#181818] to-s1 p-5 transition-colors hover:border-[#3a3a3a]"
+      >
+        <div className="relative z-[2]">
+          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em] text-mute">
+            <span className="live-dot size-1.5 rounded-full bg-ink" /> Invitations
+          </div>
+          <div className="mt-1.5 text-[18px] font-medium tracking-[-0.02em]">
+            {invites.length ? `You've been invited to ${invites.length} campaign${invites.length === 1 ? "" : "s"}` : "You're on the list. Invites coming soon."}
+          </div>
+          {invites.length > 0 && <div className="mt-0.5 truncate text-[13px] text-mute">{invites.slice(0, 3).map((c) => c.title).join(" · ")}{invites.length > 3 ? " · …" : ""}</div>}
+        </div>
+        <span className="relative z-[2] text-mute transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-ink">→</span>
+      </Link>
 
       {!accCount && (
         <Card className="mb-6 flex flex-wrap items-center justify-between gap-4 border-ink/25 bg-gradient-to-r from-[#141414] to-s1 p-5">
@@ -109,7 +127,7 @@ export default async function DashboardHome() {
           </table>
         </Card>
       ) : (
-        <Empty title="No clips yet" body="Pick a live campaign, post your clip, and paste the link." action={<LinkButton href="/campaigns" variant="secondary">Browse campaigns</LinkButton>} />
+        <Empty title="No clips yet" body="Open a campaign you're invited to, post your clip, and paste the link." action={<LinkButton href="/campaigns" variant="secondary">See your invitations</LinkButton>} />
       )}
     </>
   );

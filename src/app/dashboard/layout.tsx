@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     {
       items: [
         { href: "/dashboard", label: "Overview", icon: <LayoutGrid />, exact: true },
-        { href: "/campaigns", label: "Campaigns", icon: <Megaphone /> },
+        { href: "/campaigns", label: "Invitations", icon: <Megaphone /> },
         { href: "/dashboard/accounts", label: "Connected accounts", icon: <Link2 /> },
         { href: "/dashboard/payouts", label: "Payouts", icon: <Banknote /> },
         { href: "/dashboard/settings", label: "Settings", icon: <Settings /> },

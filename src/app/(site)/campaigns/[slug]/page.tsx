@@ -186,7 +186,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
   return (
     <div className="mx-auto max-w-[1240px] px-5 pt-10">
       <nav className="mb-6 flex items-center gap-2 text-[12px] text-dim">
-        <Link href="/campaigns" className="hover:text-ink">Campaigns</Link>
+        <Link href="/campaigns" className="hover:text-ink">Your invitations</Link>
         <span>/</span>
         <span className="text-mute">{c.title}</span>
       </nav>

@@ -1,30 +1,13 @@
-import Link from "next/link";
-import { supabasePublic } from "@/lib/supabase/server";
-import type { CampaignCard as CC } from "@/lib/types";
-import { CampaignCard } from "@/components/site/campaign-card";
-import { ActivityTable, ActivityTicker, type ActivityRow } from "@/components/site/activity";
-import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/ui/motion";
-import { LinkButton, SectionTitle, Card } from "@/components/ui/ui";
-
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { Reveal, Stagger, StaggerItem } from "@/components/ui/motion";
+import { LinkButton, SectionTitle } from "@/components/ui/ui";
+import { PlatformIcon } from "@/components/ui/icons";
 
 export default async function Home() {
-  const sb = supabasePublic();
-  const [{ data: cards }, { data: stats }, { data: activity }] = await Promise.all([
-    sb.rpc("campaign_cards"),
-    sb.rpc("platform_stats").single(),
-    sb.rpc("recent_activity", { p_limit: 14 }),
-  ]);
-  const all = (cards ?? []) as CC[];
-  const live = all.filter((c) => c.status === "live");
-  const done = all.filter((c) => c.status === "complete");
-  const s = (stats ?? { total_earned: 0, total_views: 0, clippers: 0, live_campaigns: 0 }) as {
-    total_earned: number;
-    total_views: number;
-    clippers: number;
-    live_campaigns: number;
-  };
-  const rows = (activity ?? []) as ActivityRow[];
-  const liveBudget = live.reduce((a, c) => a + Math.max(0, Number(c.budget) - Number(c.spent)), 0);
+  // Members go straight to the campaigns they've been invited to.
+  const { profile } = await getSession();
+  if (profile) redirect("/campaigns");
 
   return (
     <>
@@ -47,11 +30,11 @@ export default async function Home() {
             maskImage: "radial-gradient(70% 60% at 50% 30%, #000, transparent)",
           }}
         />
-        <div className="relative mx-auto max-w-[1240px] px-5 pb-20 pt-24 md:pt-32">
+        <div className="relative mx-auto max-w-[1240px] px-5 pb-28 pt-24 md:pt-36">
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-line2 bg-s1/80 px-3 py-1 text-[12px] text-mute">
               <span className="live-dot size-1.5 rounded-full bg-ink" />
-              {live.length} live campaign{live.length === 1 ? "" : "s"} · ${Math.round(liveBudget).toLocaleString()} available
+              Invite-only · Music, film & brand campaigns
             </span>
           </Reveal>
           <Reveal delay={0.05}>
@@ -63,72 +46,42 @@ export default async function Home() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-7 max-w-xl text-[16px] leading-relaxed text-mute">
-              Pick a campaign from an artist, film or brand. Clip it, post it on your own page, and earn a set rate for
-              every 1,000 verified views. No follower minimum on most campaigns.
+              Sign up to get invited to paid clipping campaigns from artists, labels, studios and brands. Post on your own page
+              and earn a set rate for every 1,000 verified views.
             </p>
           </Reveal>
-          <Reveal delay={0.15} className="mt-9 flex flex-wrap gap-3">
-            <LinkButton href="/campaigns" size="lg">
-              Browse campaigns
+          <Reveal delay={0.15} className="mt-9 flex flex-wrap items-center gap-3">
+            <LinkButton href="/signup" size="lg">
+              Get invited to campaigns
             </LinkButton>
-            <LinkButton href="/signup" size="lg" variant="secondary">
-              Create account
+            <LinkButton href="/login" size="lg" variant="ghost">
+              I have an account
             </LinkButton>
           </Reveal>
-
           <Reveal delay={0.2}>
-            <div className="mt-20 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4">
-              {[
-                ["Earned by clippers", <CountUp key="a" value={Number(s.total_earned)} format="money0" />],
-                ["Verified views", <CountUp key="b" value={Number(s.total_views)} format="compact" />],
-                ["Clippers", <CountUp key="c" value={Number(s.clippers)} />],
-                ["Live campaigns", <CountUp key="d" value={Number(s.live_campaigns)} />],
-              ].map(([label, node]) => (
-                <div key={label as string} className="flex flex-col gap-2 bg-black px-6 py-6">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-dim">{label}</span>
-                  <span className="text-[30px] leading-none">{node}</span>
-                </div>
-              ))}
+            <div className="mt-14 flex flex-wrap items-center gap-6 text-[12px] text-dim">
+              <span className="flex items-center gap-2"><PlatformIcon platform="tiktok" className="size-3.5 text-mute" /> TikTok</span>
+              <span className="flex items-center gap-2"><PlatformIcon platform="instagram" className="size-3.5 text-mute" /> Instagram Reels</span>
+              <span className="h-3 w-px bg-line2" />
+              <span>Free to join</span>
+              <span>No follower minimum on most campaigns</span>
+              <span>Paid per verified view</span>
             </div>
           </Reveal>
         </div>
       </section>
 
-      <ActivityTicker rows={rows} />
-
-      {/* LIVE */}
-      <section className="mx-auto max-w-[1240px] px-5 pt-20">
-        <SectionTitle
-          action={
-            <Link href="/campaigns" className="text-[13px] text-mute transition-colors hover:text-ink">
-              View all →
-            </Link>
-          }
-        >
-          Live campaigns
-        </SectionTitle>
-        {live.length ? (
-          <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {live.slice(0, 8).map((c) => (
-              <StaggerItem key={c.id}>
-                <CampaignCard c={c} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        ) : (
-          <Card className="px-6 py-16 text-center text-[14px] text-mute">New campaigns drop soon. Create an account to be first in.</Card>
-        )}
-      </section>
+      <div className="hairline" />
 
       {/* HOW */}
-      <section id="how" className="mx-auto max-w-[1240px] scroll-mt-24 px-5 pt-28">
+      <section id="how" className="mx-auto max-w-[1240px] scroll-mt-24 px-5 pt-24">
         <SectionTitle>How it works</SectionTitle>
         <Stagger className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4">
           {[
-            ["01", "Connect your page", "Add your TikTok or Instagram and verify it with a code in your bio. No passwords."],
-            ["02", "Pick a campaign", "Every campaign lists the sound, the creative direction, the rate and the budget left."],
-            ["03", "Post and submit", "Post the clip on your page, then paste the link. We review it fast."],
-            ["04", "Get paid per view", "Views are tracked automatically. When the campaign wraps, you get paid."],
+            ["01", "Create your account", "Takes a minute. Tell us which TikTok or Instagram pages you post from."],
+            ["02", "Verify your page", "Put a short code in your bio so we know the page is yours. We never ask for passwords."],
+            ["03", "Get invited", "You'll see every campaign you're invited to, with the sound, the brief, the rate and the budget."],
+            ["04", "Post and get paid", "Post the clip, paste the link. Views are tracked automatically and paid when the campaign wraps."],
           ].map(([n, t, b]) => (
             <StaggerItem key={n} className="flex flex-col gap-4 bg-black p-7">
               <span className="num text-[12px] text-dim">{n}</span>
@@ -139,44 +92,52 @@ export default async function Home() {
         </Stagger>
       </section>
 
-      {/* ACTIVITY */}
+      {/* WHY */}
       <section className="mx-auto grid max-w-[1240px] gap-10 px-5 pt-28 md:grid-cols-[1fr_1.3fr]">
         <Reveal>
           <h2 className="text-[40px] font-medium leading-[1.02] tracking-[-0.04em]">
-            Clips going out
+            Built for clippers
             <br />
-            <span className="font-serif italic font-normal text-mute">right now.</span>
+            <span className="font-serif italic font-normal text-mute">who actually post.</span>
           </h2>
           <p className="mt-5 max-w-sm text-[14px] leading-relaxed text-mute">
-            Every submission is reviewed by a person and every view is re-checked on a schedule. Botted views don&apos;t
-            get paid.
+            LOT3 Clips is run by LOT3 Media, a creator agency. Every campaign is briefed by our team and every clip is reviewed by a person.
           </p>
-          <LinkButton href="/leaderboard" variant="secondary" className="mt-7">
-            See the leaderboard
-          </LinkButton>
         </Reveal>
         <Reveal delay={0.05}>
-          <Card className="px-5 py-2">
-            <ActivityTable rows={rows.slice(0, 8)} />
-          </Card>
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
+            {[
+              ["Clear rates", "Every campaign shows its rate per 1,000 views and how much budget is left before you post."],
+              ["Your page, your audience", "You post on your own account. We never touch your login."],
+              ["Fair tracking", "Views are re-checked automatically. Botted views aren't paid, so honest clippers get a bigger share."],
+              ["Real payouts", "Get paid by PayPal, Zelle, Venmo, Cash App or Wise when the campaign wraps."],
+            ].map(([t, b]) => (
+              <div key={t} className="bg-s1 p-6">
+                <div className="text-[15px] font-medium tracking-[-0.01em]">{t}</div>
+                <div className="mt-2 text-[13px] leading-relaxed text-mute">{b}</div>
+              </div>
+            ))}
+          </div>
         </Reveal>
       </section>
 
-      {done.length > 0 && (
-        <section className="mx-auto max-w-[1240px] px-5 pt-28">
-          <SectionTitle>Completed</SectionTitle>
-          <Stagger className="grid grid-cols-2 gap-4 opacity-80 md:grid-cols-3 lg:grid-cols-4">
-            {done.slice(0, 4).map((c) => (
-              <StaggerItem key={c.id}>
-                <CampaignCard c={c} />
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </section>
-      )}
+      {/* CLIPPER CTA */}
+      <section className="mx-auto max-w-[1240px] px-5 pt-28">
+        <Reveal>
+          <div className="flex flex-col items-center gap-6 rounded-3xl border border-line px-8 py-16 text-center">
+            <h3 className="max-w-2xl text-[36px] font-medium leading-[1.04] tracking-[-0.035em] md:text-[44px]">
+              Campaigns go to clippers <span className="font-serif italic font-normal text-mute">on the list.</span>
+            </h3>
+            <p className="max-w-md text-[14px] leading-relaxed text-mute">Create your account and verify your page to get invited.</p>
+            <LinkButton href="/signup" size="lg">
+              Get invited to campaigns
+            </LinkButton>
+          </div>
+        </Reveal>
+      </section>
 
       {/* BRANDS CTA */}
-      <section className="mx-auto max-w-[1240px] px-5 pt-28">
+      <section id="brands" className="mx-auto max-w-[1240px] scroll-mt-24 px-5 pt-10">
         <Reveal>
           <div className="grain relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#1a1a1a] via-[#0b0b0b] to-black px-8 py-16 md:px-14">
             <div className="relative z-[2] flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
@@ -186,8 +147,7 @@ export default async function Home() {
                   Turn a budget into <span className="font-serif italic font-normal">organic reach.</span>
                 </h3>
                 <p className="mt-4 max-w-lg text-[14px] leading-relaxed text-mute">
-                  You set the budget and the rate per 1,000 views. We brief our clippers, review every post and send you a
-                  live report.
+                  You set the budget and the rate per 1,000 views. We brief our clippers, review every post and send you a live report.
                 </p>
               </div>
               <LinkButton href="mailto:partnerships@lot3media.com" size="lg">

@@ -7,7 +7,7 @@ export type AuthState = { error?: string; message?: string } | null;
 
 const safeNext = (n: FormDataEntryValue | null) => {
   const s = String(n ?? "");
-  return s.startsWith("/") && !s.startsWith("//") ? s : "/dashboard";
+  return s.startsWith("/") && !s.startsWith("//") ? s : "/campaigns";
 };
 
 export async function signIn(_: AuthState, fd: FormData): Promise<AuthState> {
@@ -37,7 +37,7 @@ export async function signUp(_: AuthState, fd: FormData): Promise<AuthState> {
   });
   if (error) return { error: error.message };
   if (!data.session) return { message: "Check your email to confirm your account, then log in." };
-  redirect(next === "/dashboard" ? "/dashboard/accounts" : next);
+  redirect(next === "/campaigns" || next === "/dashboard" ? "/dashboard/accounts" : next);
 }
 
 export async function sendReset(_: AuthState, fd: FormData): Promise<AuthState> {

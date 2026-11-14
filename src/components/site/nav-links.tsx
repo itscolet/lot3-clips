@@ -3,18 +3,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 
-const links = [
+const memberLinks = [
   ["Campaigns", "/campaigns"],
   ["Leaderboard", "/leaderboard"],
+] as const;
+const visitorLinks = [
   ["How it works", "/#how"],
+  ["For brands", "/#brands"],
 ] as const;
 
-export function NavLinks() {
+export function NavLinks({ member }: { member: boolean }) {
   const path = usePathname();
+  const links = member ? memberLinks : visitorLinks;
   return (
     <nav className="hidden items-center gap-1 md:flex">
       {links.map(([label, href]) => {
-        const active = href !== "/#how" && path.startsWith(href);
+        const active = !href.startsWith("/#") && path.startsWith(href);
         return (
           <Link
             key={href}

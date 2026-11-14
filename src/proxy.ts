@@ -34,6 +34,13 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+  if (!user && (path.startsWith("/campaigns") || path.startsWith("/leaderboard"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/signup";
+    url.search = "";
+    url.searchParams.set("next", path);
+    return NextResponse.redirect(url);
+  }
   if (!user && (path.startsWith("/dashboard") || path.startsWith("/admin"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

@@ -92,7 +92,11 @@ export function Board({ cards }: { cards: CC[] }) {
           ))}
         </AnimatePresence>
       </motion.div>
-      {!list.length && <p className="py-24 text-center text-[14px] text-mute">No campaigns match.</p>}
+      {!list.length && (
+        <p className="py-24 text-center text-[14px] text-mute">
+          {cards.length ? "No campaigns match those filters." : "No open invitations yet. They show up here the moment a campaign goes live."}
+        </p>
+      )}
     </>
   );
 }

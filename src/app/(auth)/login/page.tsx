@@ -5,6 +5,6 @@ export const metadata: Metadata = { title: "Log in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams;
-  const next = typeof sp.next === "string" ? sp.next : "/dashboard";
+  const next = typeof sp.next === "string" ? sp.next : "/campaigns";
   return <LoginForm next={next} />;
 }

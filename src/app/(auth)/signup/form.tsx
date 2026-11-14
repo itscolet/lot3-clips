@@ -11,8 +11,8 @@ export function SignupForm({ next }: { next: string }) {
   return (
     <ActionForm action={action} className="flex flex-col gap-5">
       <div>
-        <h1 className="text-[30px] font-medium tracking-[-0.035em]">Start clipping</h1>
-        <p className="mt-1.5 text-[14px] text-mute">Create your account. Connect your pages next.</p>
+        <h1 className="text-[30px] font-medium tracking-[-0.035em]">Get invited to campaigns</h1>
+        <p className="mt-1.5 text-[14px] text-mute">Create your account and verify your page. Your invitations show up right after.</p>
       </div>
       <input type="hidden" name="next" value={next} />
       <Field label="Username" hint="Shown on leaderboards.">
@@ -28,7 +28,7 @@ export function SignupForm({ next }: { next: string }) {
           I agree to the <Link href="/terms" target="_blank" className="text-ink underline underline-offset-2">terms & rules</Link>, including the no-bots policy.
         </span>
       </label>
-      <SubmitButton size="lg" pendingText="Creating account">Create account</SubmitButton>
+      <SubmitButton size="lg" pendingText="Creating account">Create account & get invited</SubmitButton>
       <FormNote state={state} />
       <p className="text-center text-[13px] text-mute">
         Have an account? <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-ink">Log in</Link>

@@ -436,7 +436,14 @@ export const TESTS: TestDef[] = [
       const base = process.env.NEXT_PUBLIC_SITE_URL;
       if (!base) throw new Skip("NEXT_PUBLIC_SITE_URL not set");
       await ensureCampaign(c);
-      const paths = ["/", "/campaigns", `/campaigns/${c.ids.slug}`, "/leaderboard", "/terms", "/login", "/signup", `/report/${c.ids.token}`];
+      const paths = ["/", "/terms", "/login", "/signup", `/report/${c.ids.token}`];
+      for (const p of ["/campaigns", `/campaigns/${c.ids.slug}`, "/leaderboard"]) {
+        const res = await fetch(base + p, { cache: "no-store", redirect: "manual" });
+        const loc = res.headers.get("location") ?? "";
+        s.check(`${p} is members-only (sends visitors to sign up)`, res.status >= 300 && res.status < 400 && loc.includes("/signup"), `${res.status} → ${loc}`);
+      }
+      const home = await (await fetch(base + "/", { cache: "no-store" })).text();
+      s.check("Homepage shows no campaigns or metrics", !home.includes("per 1K views") && !home.includes("Verified views") && home.includes("Get invited"));
       for (const p of paths) {
         try {
           const t = Date.now();

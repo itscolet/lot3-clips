@@ -13,7 +13,7 @@ export async function Header() {
           <Link href="/" aria-label="LOT3 Clips home">
             <Logo />
           </Link>
-          <NavLinks />
+          <NavLinks member={!!profile} />
         </div>
         <div className="flex items-center gap-2">
           {profile ? (
@@ -36,7 +36,7 @@ export async function Header() {
                 Log in
               </LinkButton>
               <LinkButton href="/signup" size="sm">
-                Start clipping
+                Get invited
               </LinkButton>
             </>
           )}
@@ -57,7 +57,7 @@ export function Footer() {
           </p>
           <p className="text-[12px] text-dim">A LOT3 Media company.</p>
         </div>
-        <FooterCol title="Platform" links={[["Campaigns", "/campaigns"], ["Leaderboard", "/leaderboard"], ["Start clipping", "/signup"]]} />
+        <FooterCol title="Clippers" links={[["Get invited", "/signup"], ["Log in", "/login"], ["How it works", "/#how"]]} />
         <FooterCol title="Brands & labels" links={[["Launch a campaign", "mailto:partnerships@lot3media.com"], ["LOT3 Media", "https://lot3media.com"]]} />
         <FooterCol title="Policy" links={[["Terms & rules", "/terms"]]} />
       </div>
