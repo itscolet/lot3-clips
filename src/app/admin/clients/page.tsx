@@ -26,24 +26,24 @@ export default async function ClientsPage() {
   return (
     <>
       <PageHead title="Clients" sub="Artists, labels and brands, with each campaign's report link ready to send." />
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="flex min-w-0 flex-col gap-4">
           {clients.length ? (
             clients.map((c) => (
-              <Card key={c.id} className="p-5">
+              <Card key={c.id} className="min-w-0 p-5">
                 <div className="flex items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 text-[15px] font-medium">{c.name} {c.is_test && <TestBadge />}</div>
                     <div className="text-[12px] text-dim">{c.contact ?? "No contact"}{c.notes ? ` · ${c.notes}` : ""}</div>
                   </div>
-                  <span className="num text-[13px] text-mute">{money0(c.campaigns.reduce((a, x) => a + Number(x.budget), 0))} total</span>
+                  <span className="num shrink-0 text-[13px] text-mute">{money0(c.campaigns.reduce((a, x) => a + Number(x.budget), 0))} total</span>
                 </div>
                 {c.campaigns.length ? (
                   <div className="mt-4 flex flex-col gap-3 border-t border-line pt-4">
                     {c.campaigns.map((k) => (
-                      <div key={k.id} className="flex flex-col gap-2">
+                      <div key={k.id} className="flex min-w-0 flex-col gap-2">
                         <div className="flex items-center gap-2 text-[13px]">
-                          <Link href={`/admin/campaigns/${k.id}`} className="font-medium hover:underline">{k.title}</Link>
+                          <Link href={`/admin/campaigns/${k.id}`} className="min-w-0 truncate font-medium hover:underline">{k.title}</Link>
                           <StatusBadge status={k.status} />
                           <span className="num ml-auto text-[12px] text-dim">{money0(k.budget)}</span>
                         </div>

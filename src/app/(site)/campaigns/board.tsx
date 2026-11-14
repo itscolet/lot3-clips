@@ -42,7 +42,7 @@ export function Board({ cards }: { cards: CC[] }) {
 
   return (
     <>
-      <div className="sticky top-16 z-30 -mx-5 mt-8 flex flex-col gap-2.5 border-b border-line bg-black/85 px-5 py-3 backdrop-blur-xl md:mt-10 md:flex-row md:items-center">
+      <div className="sticky top-16 z-30 -mx-4 mt-8 flex flex-col gap-2.5 border-b border-line bg-black/85 px-4 py-3 sm:-mx-5 sm:px-5 backdrop-blur-xl md:mt-10 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
           <div className="flex shrink-0 rounded-full border border-line2 p-0.5">
             {(["live", "complete"] as const).map((t) => (
@@ -61,7 +61,7 @@ export function Board({ cards }: { cards: CC[] }) {
             className="h-9 min-w-0 flex-1 rounded-full border border-line2 bg-s1 px-3.5 text-[16px] outline-none placeholder:text-dim focus:border-[#555] md:h-8 md:w-48 md:flex-none md:text-[12px]"
           />
         </div>
-        <div className="-mx-5 flex items-center gap-2 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:-mx-5 sm:px-5 [scrollbar-width:none] md:mx-0 md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
           <button className={chip(platform === "all")} onClick={() => setPlatform("all")}>All platforms</button>
           {(["tiktok", "instagram", "youtube", "x"] as Platform[]).map((p) => (
             <button key={p} className={iconChip(platform === p)} onClick={() => setPlatform(p)} aria-label={p}>
