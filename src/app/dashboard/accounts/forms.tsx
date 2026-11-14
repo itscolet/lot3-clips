@@ -7,10 +7,12 @@ import { Badge, Card, Input } from "@/components/ui/ui";
 import { FormNote } from "@/components/ui/form-note";
 import { compact, PLATFORM_LABEL, cn } from "@/lib/format";
 import type { Platform, SocialAccount } from "@/lib/types";
+import { useT } from "@/lib/i18n/client";
 
 export function ConnectForm() {
   const [state, action] = useActionState<ActionState, FormData>(connectAccount, null);
   const [platform, setPlatform] = useState<Platform>("tiktok");
+  const t = useT();
   return (
     <ActionForm action={action} className="flex flex-col gap-3">
       <input type="hidden" name="platform" value={platform} />
@@ -29,8 +31,8 @@ export function ConnectForm() {
           </button>
         ))}
       </div>
-      <Input name="handle" placeholder="@yourhandle" required />
-      <SubmitButton pendingText="Adding">Add account</SubmitButton>
+      <Input name="handle" placeholder={t.accounts.handlePh} required />
+      <SubmitButton pendingText={t.accounts.adding}>{t.accounts.addBtn}</SubmitButton>
       <FormNote state={state} />
     </ActionForm>
   );
@@ -40,6 +42,8 @@ export function AccountCard({ a }: { a: SocialAccount }) {
   const [vState, vAction] = useActionState<ActionState, FormData>(verifyAccount, null);
   const [uState, uAction] = useActionState<ActionState, FormData>(uploadAudience, null);
   const [copied, setCopied] = useState(false);
+  const t = useT();
+  const A = t.accounts;
   const verified = !!a.verified_at;
   return (
     <Card className="p-5">
@@ -51,15 +55,15 @@ export function AccountCard({ a }: { a: SocialAccount }) {
           <div className="text-[15px] font-medium">@{a.handle}</div>
           <div className="text-[12px] text-dim">
             {PLATFORM_LABEL[a.platform]}
-            {a.followers ? ` · ${compact(a.followers)} followers` : ""}
+            {a.followers ? A.followers(compact(a.followers)) : ""}
           </div>
         </div>
-        {verified ? <Badge tone="solid">Verified</Badge> : <Badge tone="outline">Unverified</Badge>}
+        {verified ? <Badge tone="solid">{A.verified}</Badge> : <Badge tone="outline">{A.unverified}</Badge>}
       </div>
 
       {!verified && (
         <div className="mt-5 rounded-xl border border-line bg-s2 p-4">
-          <div className="text-[12px] text-mute">Put this code in your bio</div>
+          <div className="text-[12px] text-mute">{A.putCode}</div>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <code className="num rounded-lg border border-line2 bg-black px-3 py-2 text-[18px] tracking-[0.08em]">{a.verify_code}</code>
             <button
@@ -71,34 +75,34 @@ export function AccountCard({ a }: { a: SocialAccount }) {
               }}
               className="text-[12px] text-mute transition-colors hover:text-ink"
             >
-              {copied ? "Copied ✓" : "Copy"}
+              {copied ? A.copied : A.copy}
             </button>
             <ActionForm action={vAction} className="ml-auto">
               <input type="hidden" name="id" value={a.id} />
-              <SubmitButton size="sm" pendingText="Checking bio">Verify</SubmitButton>
+              <SubmitButton size="sm" pendingText={A.checking}>{A.verify}</SubmitButton>
             </ActionForm>
           </div>
           <div className="mt-3"><FormNote state={vState} /></div>
           <ActionForm action={removeAccount} className="mt-3">
             <input type="hidden" name="id" value={a.id} />
-            <button className="text-[12px] text-dim hover:text-ink">Remove account</button>
+            <button className="text-[12px] text-dim hover:text-ink">{A.remove}</button>
           </ActionForm>
         </div>
       )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
         <div className="text-[13px]">
-          <span className="text-mute">US audience: </span>
-          {a.audience_status === "approved" && <span>Approved{a.us_audience_pct ? ` · ${a.us_audience_pct}% US` : ""}</span>}
-          {a.audience_status === "pending" && <span>In review</span>}
-          {a.audience_status === "rejected" && <span>Not approved — upload a clearer screenshot</span>}
-          {a.audience_status === "none" && <span className="text-dim">Not submitted</span>}
+          <span className="text-mute">{A.usAudience}</span>
+          {a.audience_status === "approved" && <span>{A.approved}{a.us_audience_pct ? A.usPct(a.us_audience_pct) : ""}</span>}
+          {a.audience_status === "pending" && <span>{A.inReview}</span>}
+          {a.audience_status === "rejected" && <span>{A.rejected}</span>}
+          {a.audience_status === "none" && <span className="text-dim">{A.notSubmitted}</span>}
         </div>
         {a.audience_status !== "approved" && (
           <ActionForm action={uAction} className="flex w-full items-center gap-2 sm:w-auto">
             <input type="hidden" name="id" value={a.id} />
             <Input type="file" name="file" accept="image/*" className="h-10 min-w-0 flex-1 py-1.5 text-[12px] sm:w-56 sm:flex-none file:mr-3 file:rounded-full file:border-0 file:bg-s3 file:px-3 file:py-1 file:text-[12px] file:text-ink" />
-            <SubmitButton size="sm" variant="secondary" pendingText="Uploading">Upload</SubmitButton>
+            <SubmitButton size="sm" variant="secondary" pendingText={A.uploading}>{A.upload}</SubmitButton>
           </ActionForm>
         )}
       </div>

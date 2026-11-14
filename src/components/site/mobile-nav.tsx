@@ -3,23 +3,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { LangSwitch } from "./lang-switch";
 
 export function MobileNav({ member, admin }: { member: boolean; admin: boolean }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
+  const t = useT();
   const [last, setLast] = useState(path);
   if (path !== last) {
     setLast(path);
     setOpen(false);
   }
   const links: [string, string][] = member
-    ? [["Your invitations", "/campaigns"], ["Leaderboard", "/leaderboard"], ["Dashboard", "/dashboard"], ...(admin ? ([["Admin", "/admin"]] as [string, string][]) : [])]
-    : [["How it works", "/#how"], ["For brands", "/#brands"], ["Log in", "/login"]];
+    ? [[t.common.yourInvitations, "/campaigns"], [t.common.leaderboard, "/leaderboard"], [t.common.dashboard, "/dashboard"], ...(admin ? ([[t.common.admin, "/admin"]] as [string, string][]) : [])]
+    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"], [t.common.login, "/login"]];
   return (
     <div className="md:hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? "Close menu" : "Open menu"}
+        aria-label={open ? t.common.closeMenu : t.common.openMenu}
         className="grid size-9 place-items-center rounded-full border border-line2 bg-s1 active:scale-95"
       >
         <span className="relative block h-3 w-4">
@@ -43,9 +46,13 @@ export function MobileNav({ member, admin }: { member: boolean; admin: boolean }
                 <span className="text-dim">→</span>
               </Link>
             ))}
+            <div className="flex h-14 items-center justify-between border-b border-line text-[15px] text-mute">
+              {t.lang.label}
+              <LangSwitch />
+            </div>
             {!member && (
               <Link href="/signup" onClick={() => setOpen(false)} className="mt-5 flex h-12 items-center justify-center rounded-full bg-ink text-[14px] font-medium text-black">
-                Get invited to campaigns
+                {t.common.getInvitedToCampaigns}
               </Link>
             )}
           </motion.div>

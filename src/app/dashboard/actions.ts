@@ -4,28 +4,30 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { detectPlatform, normalizeUrl } from "@/lib/format";
 import type { Platform } from "@/lib/types";
+import { getT } from "@/lib/i18n/server";
+import type { Dict } from "@/lib/i18n/dict";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string } | null;
 
-const friendly = (msg: string) => {
-  if (msg.includes("submissions_campaign_id_url_key")) return "That clip is already submitted to this campaign.";
-  if (msg.includes("social_accounts_platform_handle_key")) return "That account is already connected on LOT3 Clips.";
-  if (msg.includes("profiles_username_key")) return "That username is taken.";
-  if (msg.includes("profiles_username_check")) return "Usernames are 3–24 characters: letters, numbers, _ or .";
+const friendly = (msg: string, t: Dict) => {
+  if (msg.includes("submissions_campaign_id_url_key")) return t.act.alreadySubmitted;
+  if (msg.includes("social_accounts_platform_handle_key")) return t.act.accountTaken;
+  if (msg.includes("profiles_username_key")) return t.act.usernameTaken;
+  if (msg.includes("profiles_username_check")) return t.act.usernameRule;
   return msg.replace(/^.*?ERROR:\s*/, "");
 };
 
 export async function submitClip(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const campaignId = String(fd.get("campaign_id"));
   const slug = String(fd.get("slug"));
   const accountId = String(fd.get("account_id") || "");
   const raw = String(fd.get("url") || "");
-  if (!raw) return { error: "Paste the link to your post." };
+  if (!raw) return { error: t.act.pasteLink };
   const url = normalizeUrl(raw);
   const platform = detectPlatform(url);
-  if (!platform) return { error: "That doesn't look like a TikTok, Instagram, YouTube or X link." };
-  if (!accountId) return { error: "Pick the account you posted from." };
+  if (!platform) return { error: t.act.badLink };
+  if (!accountId) return { error: t.act.pickAccount };
   const { error } = await supabase.from("submissions").insert({
     campaign_id: campaignId,
     user_id: profile.id,
@@ -33,14 +35,14 @@ export async function submitClip(_: ActionState, fd: FormData): Promise<ActionSt
     platform,
     url,
   });
-  if (error) return { error: friendly(error.message) };
+  if (error) return { error: friendly(error.message, t) };
   revalidatePath(`/campaigns/${slug}`);
   revalidatePath("/dashboard");
-  return { ok: true, message: "Submitted. We'll review it shortly." };
+  return { ok: true, message: t.act.submitted };
 }
 
 export async function connectAccount(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const platform = String(fd.get("platform")) as Platform;
   const handle = String(fd.get("handle") || "")
     .trim()
@@ -48,46 +50,46 @@ export async function connectAccount(_: ActionState, fd: FormData): Promise<Acti
     .replace(/^https?:\/\/(www\.)?(tiktok|instagram)\.com\/@?/i, "")
     .replace(/[/?].*$/, "")
     .toLowerCase();
-  if (!handle) return { error: "Enter your handle." };
+  if (!handle) return { error: t.act.enterHandle };
   const { error } = await supabase.from("social_accounts").insert({ user_id: profile.id, platform, handle });
-  if (error) return { error: friendly(error.message) };
+  if (error) return { error: friendly(error.message, t) };
   revalidatePath("/dashboard/accounts");
-  return { ok: true, message: "Account added. Put the code in your bio, then hit Verify." };
+  return { ok: true, message: t.act.accountAdded };
 }
 
 export async function verifyAccount(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const id = String(fd.get("id"));
   const { data: acc } = await supabase.from("social_accounts").select("*").eq("id", id).eq("user_id", profile.id).single();
-  if (!acc) return { error: "Account not found." };
+  if (!acc) return { error: t.act.notFound };
   const { checkBioCode } = await import("@/lib/apify");
   const res = await checkBioCode(acc.platform, acc.handle, acc.verify_code);
   if (res.status === "unavailable")
-    return { ok: true, message: "Auto-check is offline right now. We'll verify it manually within 24h — keep the code in your bio." };
-  if (res.status === "not_found") return { error: `Couldn't find the code ${acc.verify_code} in @${acc.handle}'s bio yet. It can take a minute to update.` };
+    return { ok: true, message: t.act.autoOffline };
+  if (res.status === "not_found") return { error: t.act.codeNotFound(acc.verify_code, acc.handle) };
   // mark verified via the service client (clippers can't self-verify)
   const { supabaseService } = await import("@/lib/supabase/server");
   const svc = supabaseService();
-  if (!svc) return { ok: true, message: "Code found. An admin will confirm shortly." };
+  if (!svc) return { ok: true, message: t.act.codeFound };
   await svc.from("social_accounts").update({ verified_at: new Date().toISOString(), followers: res.followers ?? null }).eq("id", id);
   revalidatePath("/dashboard/accounts");
-  return { ok: true, message: "Verified. You can remove the code from your bio." };
+  return { ok: true, message: t.act.verified };
 }
 
 export async function uploadAudience(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const id = String(fd.get("id"));
   const file = fd.get("file") as File | null;
-  if (!file || file.size === 0) return { error: "Choose a screenshot." };
-  if (file.size > 8 * 1024 * 1024) return { error: "Max 8MB." };
+  if (!file || file.size === 0) return { error: t.act.chooseScreenshot };
+  if (file.size > 8 * 1024 * 1024) return { error: t.act.max8 };
   const ext = (file.name.split(".").pop() || "png").toLowerCase();
   const path = `${profile.id}/${id}-${Date.now()}.${ext}`;
   const up = await supabase.storage.from("audience").upload(path, file, { contentType: file.type, upsert: false });
   if (up.error) return { error: up.error.message };
   const { error } = await supabase.from("social_accounts").update({ audience_screenshot_path: path }).eq("id", id).eq("user_id", profile.id);
-  if (error) return { error: friendly(error.message) };
+  if (error) return { error: friendly(error.message, t) };
   revalidatePath("/dashboard/accounts");
-  return { ok: true, message: "Screenshot sent for review." };
+  return { ok: true, message: t.act.screenshotSent };
 }
 
 export async function removeAccount(fd: FormData) {
@@ -97,26 +99,26 @@ export async function removeAccount(fd: FormData) {
 }
 
 export async function savePayout(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const method = String(fd.get("method"));
   const handle = String(fd.get("handle") || "").trim();
-  if (!handle) return { error: "Add where we should send your money." };
+  if (!handle) return { error: t.act.addPayout };
   const { error } = await supabase
     .from("payout_settings")
     .upsert({ user_id: profile.id, method, handle, updated_at: new Date().toISOString() });
-  if (error) return { error: friendly(error.message) };
+  if (error) return { error: friendly(error.message, t) };
   revalidatePath("/dashboard/payouts");
-  return { ok: true, message: "Saved." };
+  return { ok: true, message: t.act.saved };
 }
 
 export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, profile } = await requireUser();
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const username = String(fd.get("username") || "").trim().toLowerCase();
   const display_name = String(fd.get("display_name") || "").trim() || null;
   const { error } = await supabase.from("profiles").update({ username, display_name }).eq("id", profile.id);
-  if (error) return { error: friendly(error.message) };
+  if (error) return { error: friendly(error.message, t) };
   revalidatePath("/dashboard", "layout");
-  return { ok: true, message: "Saved." };
+  return { ok: true, message: t.act.saved };
 }
 
 export async function signOut() {

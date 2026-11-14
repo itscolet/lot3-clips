@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
-import { compact, money, money0, PLATFORM_LABEL, shortDate } from "@/lib/format";
+import { compact, money, money0, PLATFORM_LABEL } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
+import { shortDateL, tLabel, tStatus } from "@/lib/i18n/dict";
 import type { Campaign, SocialAccount, Stats, Submission } from "@/lib/types";
 import { CampaignCover, PlatformRow } from "@/components/site/campaign-card";
 import { ActivityTable, type ActivityRow } from "@/components/site/activity";
@@ -20,7 +22,8 @@ type Leader = { user_id: string; username: string; avatar_url: string | null; vi
 
 export default async function CampaignPage({ params }: PageProps<"/campaigns/[slug]">) {
   const { slug } = await params;
-  const { supabase, profile } = await getSession();
+  const [{ supabase, profile }, { lang, t }] = await Promise.all([getSession(), getT()]);
+  const C = t.campaign;
   const { data: c } = await supabase.from("campaigns").select("*").eq("slug", slug).maybeSingle<Campaign>();
   if (!c) notFound();
 
@@ -44,16 +47,16 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
   const overview = (
     <div className="flex flex-col gap-5">
       <Card className="p-6">
-        <h3 className="text-[12px] font-medium uppercase tracking-[0.1em] text-dim">The brief</h3>
-        <div className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink/90">{c.description || "Brief coming soon."}</div>
+        <h3 className="text-[12px] font-medium uppercase tracking-[0.1em] text-dim">{C.brief}</h3>
+        <div className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink/90">{c.description || C.briefSoon}</div>
       </Card>
       <Card className="p-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {[
-            ["Submitted", stats.submitted],
-            ["Approved", stats.approved],
-            ["Pending", stats.pending],
-            ["Denied", stats.rejected],
+            [C.stats.submitted, stats.submitted],
+            [C.stats.approved, stats.approved],
+            [C.stats.pending, stats.pending],
+            [C.stats.rejected, stats.rejected],
           ].map(([l, v]) => (
             <div key={l as string} className="rounded-xl border border-line bg-s2 p-4">
               <div className="text-[11px] uppercase tracking-[0.08em] text-dim">{l}</div>
@@ -62,27 +65,27 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
           ))}
         </div>
         <div className="mt-6 flex items-end justify-between">
-          <span className="text-[13px] text-mute">Spent {money(stats.spent)}</span>
-          <span className="num text-[13px]">{money(left)} remaining</span>
+          <span className="text-[13px] text-mute">{C.spent(money(stats.spent))}</span>
+          <span className="num text-[13px]">{C.remaining(money(left))}</span>
         </div>
         <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />
       </Card>
       <Card className="px-6 py-3">
-        <h3 className="pt-3 text-[12px] font-medium uppercase tracking-[0.1em] text-dim">Live submissions</h3>
-        <ActivityTable rows={(act ?? []) as ActivityRow[]} showCampaign={false} />
+        <h3 className="pt-3 text-[12px] font-medium uppercase tracking-[0.1em] text-dim">{C.liveSubs}</h3>
+        <ActivityTable rows={(act ?? []) as ActivityRow[]} showCampaign={false} lang={lang} />
       </Card>
     </div>
   );
 
   const rules = (
     <div className="flex flex-col gap-5">
-      <RuleBlock title="Account requirements">
-        <Rule k="Audience" v={c.territory === "US" ? "Majority US audience (screenshot approved)" : c.territory} />
-        <Rule k="Platforms" v={c.platforms.map((p) => PLATFORM_LABEL[p]).join(", ")} />
-        <Rule k="Minimum followers" v={c.min_followers ? c.min_followers.toLocaleString() : "None"} />
-        <Rule k="Account age" v={c.min_account_age_months ? `${c.min_account_age_months}+ months` : "Any"} />
+      <RuleBlock title={C.reqs}>
+        <Rule k={C.audience} v={c.territory === "US" ? C.audienceUS : c.territory} />
+        <Rule k={C.platforms} v={c.platforms.map((p) => PLATFORM_LABEL[p]).join(", ")} />
+        <Rule k={C.minFollowers} v={c.min_followers ? c.min_followers.toLocaleString("en-US") : C.none} />
+        <Rule k={C.accountAge} v={c.min_account_age_months ? C.months(c.min_account_age_months) : C.any} />
       </RuleBlock>
-      <RuleBlock title="Content rules">
+      <RuleBlock title={C.contentRules}>
         {c.content_rules.length ? (
           c.content_rules.map((r, i) => (
             <div key={i} className="flex gap-3 py-2.5 text-[14px]">
@@ -91,35 +94,30 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
             </div>
           ))
         ) : (
-          <p className="py-2 text-[14px] text-mute">Follow the brief and platform community guidelines.</p>
+          <p className="py-2 text-[14px] text-mute">{C.rulesFallback}</p>
         )}
-        {c.caption_requirements && <Rule k="Caption" v={c.caption_requirements} />}
-        {c.max_payout_per_clip && <Rule k="Max payout per clip" v={money(c.max_payout_per_clip)} />}
+        {c.caption_requirements && <Rule k={C.caption} v={c.caption_requirements} />}
+        {c.max_payout_per_clip && <Rule k={C.maxPayout} v={money(c.max_payout_per_clip)} />}
       </RuleBlock>
-      <RuleBlock title="Resources">
+      <RuleBlock title={C.resources}>
         {profile ? (
           <div className="flex flex-wrap gap-2 py-2">
             {c.sound_url && (
-              <LinkButton href={c.sound_url} target="_blank" variant="secondary" size="sm">Open sound ↗</LinkButton>
+              <LinkButton href={c.sound_url} target="_blank" variant="secondary" size="sm">{C.openSound}</LinkButton>
             )}
             {c.assets_url && (
-              <LinkButton href={c.assets_url} target="_blank" variant="secondary" size="sm">Footage & assets ↗</LinkButton>
+              <LinkButton href={c.assets_url} target="_blank" variant="secondary" size="sm">{C.assets}</LinkButton>
             )}
-            {!c.sound_url && !c.assets_url && <span className="text-[14px] text-mute">No extra resources.</span>}
+            {!c.sound_url && !c.assets_url && <span className="text-[14px] text-mute">{C.noResources}</span>}
           </div>
         ) : (
           <p className="py-2 text-[14px] text-mute">
-            <Link href={`/login?next=/campaigns/${c.slug}`} className="text-ink underline underline-offset-4">Log in</Link> to unlock the sound and footage.
+            <Link href={`/login?next=/campaigns/${c.slug}`} className="text-ink underline underline-offset-4">{C.unlockA}</Link>{C.unlockB}
           </p>
         )}
       </RuleBlock>
-      <RuleBlock title="Always">
-        {[
-          "Post from your own account. Keep the clip live for at least 30 days.",
-          "No bots, view farms, or paid engagement. Botted views are never paid and the account is banned.",
-          "One link per post. Reposting the same clip to farm views will be rejected.",
-          "Follow the platform's community guidelines and add disclosures when the brief asks.",
-        ].map((r, i) => (
+      <RuleBlock title={C.always}>
+        {C.alwaysRules.map((r, i) => (
           <div key={i} className="py-2 text-[14px] text-ink/90">{r}</div>
         ))}
       </RuleBlock>
@@ -141,7 +139,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
                     {i + 1}
                   </span>
                   <span className="mt-1 w-full truncate text-[13px] font-medium sm:text-[14px]">{leaders[i].username}</span>
-                  <span className="num text-[12px] text-mute">{compact(leaders[i].views)} views</span>
+                  <span className="num text-[12px] text-mute">{compact(leaders[i].views)} {t.common.views}</span>
                   <span className="num text-[13px]">{money(leaders[i].earned)}</span>
                 </div>
               ) : (
@@ -153,10 +151,10 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-dim">
                 <th className="py-2 font-medium">#</th>
-                <th className="font-medium">Clipper</th>
-                <th className="text-right font-medium">Posts</th>
-                <th className="text-right font-medium">Views</th>
-                <th className="text-right font-medium">Earned</th>
+                <th className="font-medium">{t.common.clipper}</th>
+                <th className="text-right font-medium">{t.common.posts}</th>
+                <th className="text-right font-medium">{t.common.viewsCol}</th>
+                <th className="text-right font-medium">{t.common.earnedCol}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -178,7 +176,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
           </table></div>
         </>
       ) : (
-        <p className="py-10 text-center text-[14px] text-mute">No approved clips yet. First in gets the top spot.</p>
+        <p className="py-10 text-center text-[14px] text-mute">{C.noApproved}</p>
       )}
     </Card>
   );
@@ -186,7 +184,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
   return (
     <div className="mx-auto max-w-[1240px] px-4 pt-6 sm:px-5 md:pt-10">
       <nav className="mb-6 flex items-center gap-2 text-[12px] text-dim">
-        <Link href="/campaigns" className="hover:text-ink">Your invitations</Link>
+        <Link href="/campaigns" className="hover:text-ink">{t.common.yourInvitations}</Link>
         <span>/</span>
         <span className="text-mute">{c.title}</span>
       </nav>
@@ -194,18 +192,18 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
         <div className="min-w-0">
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <h1 className="text-[32px] font-medium leading-none tracking-[-0.04em] md:text-[40px]">{c.title}</h1>
-            <StatusBadge status={c.status} />
+            <StatusBadge status={c.status} label={tStatus(t, c.status)} />
             {c.is_test && <TestBadge />}
           </div>
           <p className="mb-8 text-[13px] text-mute">
-            {c.artist ? `${c.artist} · ` : ""}Launched {shortDate(c.starts_at ?? c.created_at)} · {c.label}
+            {c.artist ? `${c.artist} · ` : ""}{C.launched(shortDateL(c.starts_at ?? c.created_at, lang))} · {tLabel(t, c.label)}
           </p>
           <Tabs
             id="campaign"
             tabs={[
-              { key: "overview", label: "Overview", content: overview },
-              { key: "rules", label: "Rules", content: rules },
-              { key: "board", label: "Leaderboard", content: board },
+              { key: "overview", label: C.tabs.overview, content: overview },
+              { key: "rules", label: C.tabs.rules, content: rules },
+              { key: "board", label: C.tabs.board, content: board },
             ]}
           />
         </div>
@@ -214,47 +212,47 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
           <CampaignCover title={c.title} slug={c.slug} cover={c.cover_url} label={c.label} className="aspect-[16/9] rounded-2xl border border-line lg:aspect-[4/3]" big />
           <Card className="divide-y divide-line">
             <div className="flex items-center justify-between p-5">
-              <span className="text-[13px] text-mute">Rate per 1K views</span>
+              <span className="text-[13px] text-mute">{C.rate}</span>
               <span className="num text-[24px]">{money(c.cpm)}</span>
             </div>
             <div className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-mute">Budget</span>
+                <span className="text-[13px] text-mute">{C.budget}</span>
                 <span className="num text-[15px]">{money0(c.budget)}</span>
               </div>
               <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />
               <div className="mt-2 flex justify-between text-[11px] text-dim">
-                <span className="num">{money(stats.spent)} paid</span>
-                <span className="num">{money(left)} left</span>
+                <span className="num">{C.paid(money(stats.spent))}</span>
+                <span className="num">{C.left(money(left))}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 divide-x divide-line">
               <div className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.08em] text-dim">Views</div>
+                <div className="text-[11px] uppercase tracking-[0.08em] text-dim">{t.common.viewsCol}</div>
                 <div className="num mt-1.5 text-[18px]">{compact(stats.total_views)}</div>
               </div>
               <div className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.08em] text-dim">Clippers</div>
+                <div className="text-[11px] uppercase tracking-[0.08em] text-dim">{C.clippers}</div>
                 <div className="num mt-1.5 text-[18px]">{stats.clippers}</div>
               </div>
             </div>
             <div className="flex items-center justify-between p-5">
-              <span className="text-[13px] text-mute">Platforms</span>
+              <span className="text-[13px] text-mute">{C.platforms}</span>
               <PlatformRow platforms={c.platforms} />
             </div>
             <div className="flex items-center justify-between p-5">
-              <span className="text-[13px] text-mute">Territory</span>
-              <span className="text-[13px]">{c.territory === "US" ? "US only" : c.territory}</span>
+              <span className="text-[13px] text-mute">{C.territory}</span>
+              <span className="text-[13px]">{c.territory === "US" ? t.common.usOnly : c.territory}</span>
             </div>
           </Card>
 
           <Card className="p-5">
             {c.status !== "live" ? (
-              <p className="text-center text-[13px] text-mute">This campaign isn&apos;t taking submissions.</p>
+              <p className="text-center text-[13px] text-mute">{C.closed}</p>
             ) : !profile ? (
               <div className="flex flex-col gap-3">
-                <LinkButton href={`/signup?next=/campaigns/${c.slug}`} size="lg">Join campaign</LinkButton>
-                <p className="text-center text-[12px] text-dim">Free. Takes a minute.</p>
+                <LinkButton href={`/signup?next=/campaigns/${c.slug}`} size="lg">{C.join}</LinkButton>
+                <p className="text-center text-[12px] text-dim">{C.joinSub}</p>
               </div>
             ) : (
               <SubmitClipForm campaignId={c.id} slug={c.slug} platforms={c.platforms} accounts={accounts} usOnly={c.territory === "US"} />
@@ -263,14 +261,14 @@ export default async function CampaignPage({ params }: PageProps<"/campaigns/[sl
 
           {mySubs.length > 0 && (
             <Card className="p-5">
-              <h3 className="mb-3 text-[12px] font-medium uppercase tracking-[0.1em] text-dim">Your clips</h3>
+              <h3 className="mb-3 text-[12px] font-medium uppercase tracking-[0.1em] text-dim">{C.yourClips}</h3>
               <div className="flex flex-col divide-y divide-line">
                 {mySubs.map((s) => (
                   <div key={s.id} className="flex items-center gap-3 py-2.5 text-[12px]">
                     <PlatformIcon platform={s.platform} />
                     <a href={s.url} target="_blank" className="min-w-0 flex-1 truncate text-mute hover:text-ink">{s.url.replace(/^https?:\/\//, "")}</a>
                     <span className="num">{compact(s.views)}</span>
-                    <StatusBadge status={s.status} />
+                    <StatusBadge status={s.status} label={tStatus(t, s.status)} />
                   </div>
                 ))}
               </div>

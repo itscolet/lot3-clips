@@ -58,7 +58,7 @@ export function Badge({
   );
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const map: Record<string, { tone: "default" | "solid" | "outline" | "dim"; dot?: boolean }> = {
     live: { tone: "solid", dot: true },
     approved: { tone: "solid" },
@@ -81,7 +81,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge tone={m.tone}>
       {m.dot && <span className="live-dot size-1.5 rounded-full bg-current" />}
-      {status}
+      {label ?? status}
     </Badge>
   );
 }

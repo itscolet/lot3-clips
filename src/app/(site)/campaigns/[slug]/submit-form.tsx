@@ -8,6 +8,7 @@ import { Input, LinkButton } from "@/components/ui/ui";
 import { FormNote } from "@/components/ui/form-note";
 import type { Platform, SocialAccount } from "@/lib/types";
 import { PLATFORM_LABEL } from "@/lib/format";
+import { useT } from "@/lib/i18n/client";
 
 export function SubmitClipForm({
   campaignId,
@@ -24,6 +25,8 @@ export function SubmitClipForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(submitClip, null);
   const ref = useRef<HTMLFormElement>(null);
+  const t = useT();
+  const S = t.submit;
   useEffect(() => {
     if (state?.ok) ref.current?.reset();
   }, [state]);
@@ -36,10 +39,9 @@ export function SubmitClipForm({
     return (
       <div className="flex flex-col gap-3 text-center">
         <p className="text-[13px] leading-relaxed text-mute">
-          Connect and verify a {platforms.map((p) => PLATFORM_LABEL[p]).join(" or ")} account
-          {usOnly ? ", and get your US audience screenshot approved," : ""} to submit clips.
+          {S.needAccount(platforms.map((p) => PLATFORM_LABEL[p]).join(S.or), usOnly)}
         </p>
-        <LinkButton href="/dashboard/accounts">Connect account</LinkButton>
+        <LinkButton href="/dashboard/accounts">{t.common.connectAccount}</LinkButton>
       </div>
     );
   }
@@ -48,7 +50,7 @@ export function SubmitClipForm({
     <ActionForm ref={ref} action={action} className="flex flex-col gap-3">
       <input type="hidden" name="campaign_id" value={campaignId} />
       <input type="hidden" name="slug" value={slug} />
-      <span className="text-[12px] font-medium text-mute">Posted from</span>
+      <span className="text-[12px] font-medium text-mute">{S.postedFrom}</span>
       <div className="flex flex-col gap-1.5">
         {eligible.map((a, i) => (
           <label
@@ -61,10 +63,10 @@ export function SubmitClipForm({
         ))}
       </div>
       <Input name="url" placeholder="https://www.tiktok.com/@you/video/…" required />
-      <SubmitButton pendingText="Submitting">Submit clip</SubmitButton>
+      <SubmitButton pendingText={S.pending}>{S.submit}</SubmitButton>
       <FormNote state={state} />
       <p className="text-center text-[11px] text-dim">
-        By submitting you agree to the <Link href="/terms" className="underline underline-offset-2">rules</Link>.
+        {S.agreeA}<Link href="/terms" className="underline underline-offset-2">{S.agreeLink}</Link>{S.agreeB}
       </p>
     </ActionForm>
   );
