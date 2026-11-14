@@ -137,7 +137,7 @@ export function ReviewQueue({ items, history }: { items: QueueItem[]; history: R
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <div className="mb-1 flex h-9 items-center gap-3 px-1 text-[12px] text-mute">
           <input
             type="checkbox"

@@ -9,7 +9,7 @@ import { cn } from "@/lib/format";
 export function CopyField({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-line2 bg-s2 p-1.5 pl-3.5">
+    <div className="flex min-w-0 items-center gap-2 rounded-xl border border-line2 bg-s2 p-1.5 pl-3.5">
       <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-mute md:text-[12px]">{value}</span>
       <button
         type="button"
@@ -18,11 +18,11 @@ export function CopyField({ value }: { value: string }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1400);
         }}
-        className="h-8 rounded-lg bg-ink px-3 text-[12px] font-medium text-black transition-transform active:scale-95"
+        className="h-8 shrink-0 rounded-lg bg-ink px-3 text-[12px] font-medium text-black transition-transform active:scale-95"
       >
         {copied ? "Copied" : "Copy"}
       </button>
-      <a href={value} target="_blank" className="grid h-8 place-items-center rounded-lg border border-line2 px-3 text-[12px] text-mute hover:text-ink">Open</a>
+      <a href={value} target="_blank" className="grid h-8 shrink-0 place-items-center rounded-lg border border-line2 px-3 text-[12px] text-mute hover:text-ink">Open</a>
     </div>
   );
 }

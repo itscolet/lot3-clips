@@ -48,7 +48,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const effCpm = stats.total_views ? (Number(stats.spent) / stats.total_views) * 1000 : 0;
 
-  const statusBtn = (s: string, label: string, variant: "primary" | "secondary" = "secondary") => (
+  const statusBtn = (s: string, label: React.ReactNode, variant: "primary" | "secondary" = "secondary") => (
     <form action={setCampaignStatus}>
       <input type="hidden" name="id" value={c.id} />
       <input type="hidden" name="status" value={s} />
@@ -136,7 +136,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
           <>
             {c.status !== "live" && statusBtn("live", c.status === "draft" ? "Publish" : "Resume", "primary")}
             {c.status === "live" && statusBtn("paused", "Pause")}
-            {c.status !== "complete" && statusBtn("complete", "Complete & unlock payouts")}
+            {c.status !== "complete" && statusBtn("complete", <><span className="md:hidden">Complete</span><span className="max-md:hidden">Complete &amp; unlock payouts</span></>)}
             <LinkButton href={`/campaigns/${c.slug}`} target="_blank" variant="secondary" size="sm" className="h-9">View public ↗</LinkButton>
           </>
         }
@@ -151,8 +151,8 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
       </div>
       <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <Card className="p-5">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="min-w-0 p-5">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-[13px] font-medium">Client report link</span>
             <form action={rotateReportLink}>
@@ -163,10 +163,10 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
           <CopyField value={`${site}/report/${c.report_token}`} />
           <p className="mt-2 text-[11px] text-dim">Anyone with this link sees live views and approved clips. No login.</p>
         </Card>
-        <Card className="flex flex-col justify-between gap-3 p-5">
+        <Card className="flex min-w-0 flex-col justify-between gap-3 p-5">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-medium">View sync</span>
-            <span className="text-[12px] text-dim">Runs every 6h automatically</span>
+            <span className="text-right text-[12px] text-dim">Runs every 6h</span>
           </div>
           <SyncButton campaignId={c.id} />
         </Card>

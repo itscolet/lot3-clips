@@ -48,7 +48,7 @@ export default async function PayoutsAdmin({ searchParams }: PageProps<"/admin/p
         sub="Pay clippers from PayPal, Zelle or Wise, then record it here. Earnings unlock when a campaign is completed."
         action={<LinkButton href="/admin/payouts/export" variant="secondary">Export owed CSV</LinkButton>}
       />
-      <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
         <KPI label="Owed now" value={money(totalOwed)} sub={`${owed.length} payouts ready`} />
         <KPI label="Accruing (live)" value={money(totalAccruing)} sub="Unlocks on completion" />
         <KPI label="Paid all time" value={money(totalPaid)} sub={`${history.filter((h) => h.status === "paid").length} payments`} />
