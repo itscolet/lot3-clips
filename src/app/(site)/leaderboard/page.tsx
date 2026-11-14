@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
+import { getT } from "@/lib/i18n/server";
 import { supabasePublic } from "@/lib/supabase/server";
 import { compact, money } from "@/lib/format";
 import { Avatar, Card } from "@/components/ui/ui";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/motion";
 
-export const metadata: Metadata = { title: "Leaderboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).t.meta.leaderboard };
+}
 
 type Leader = { user_id: string; username: string; avatar_url: string | null; views: number; earned: number; posts: number };
 
 export default async function LeaderboardPage() {
-  const { data } = await supabasePublic().rpc("leaderboard", { p_limit: 100 });
+  const [{ data }, { t }] = await Promise.all([supabasePublic().rpc("leaderboard", { p_limit: 100 }), getT()]);
+  const L = t.leaderboard;
   const rows = (data ?? []) as Leader[];
   const podium = [rows[1], rows[0], rows[2]];
   return (
     <div className="mx-auto max-w-[1000px] px-4 pt-10 sm:px-5 md:pt-16">
       <Reveal>
-        <h1 className="text-center text-[44px] font-medium tracking-[-0.04em]">Leaderboard</h1>
-        <p className="mt-2 text-center text-[14px] text-mute">Top clippers by verified views, all campaigns.</p>
+        <h1 className="text-center text-[44px] font-medium tracking-[-0.04em]">{L.title}</h1>
+        <p className="mt-2 text-center text-[14px] text-mute">{L.sub}</p>
       </Reveal>
       {rows.length ? (
         <>
@@ -36,10 +40,10 @@ export default async function LeaderboardPage() {
                     <span className="w-full truncate text-[13px] font-medium sm:text-[15px]">{l.username}</span>
                     <div className="grid w-full grid-cols-2 gap-2 text-[11px] text-dim">
                       <div>
-                        <div className="num text-[16px] text-ink">{compact(l.views)}</div>views
+                        <div className="num text-[16px] text-ink">{compact(l.views)}</div>{t.common.views}
                       </div>
                       <div>
-                        <div className="num text-[16px] text-ink">{money(l.earned, 0)}</div>earned
+                        <div className="num text-[16px] text-ink">{money(l.earned, 0)}</div>{t.common.earned}
                       </div>
                     </div>
                   </div>
@@ -54,11 +58,11 @@ export default async function LeaderboardPage() {
               <table className="w-full min-w-[480px] text-[13px]">
                 <thead className="border-b border-line bg-s2 text-left text-[11px] uppercase tracking-[0.08em] text-dim">
                   <tr>
-                    <th className="px-5 py-3 font-medium">Rank</th>
-                    <th className="font-medium">Clipper</th>
-                    <th className="text-right font-medium">Posts</th>
-                    <th className="text-right font-medium">Views</th>
-                    <th className="px-5 text-right font-medium">Earned</th>
+                    <th className="px-5 py-3 font-medium">{L.rank}</th>
+                    <th className="font-medium">{t.common.clipper}</th>
+                    <th className="text-right font-medium">{t.common.posts}</th>
+                    <th className="text-right font-medium">{t.common.viewsCol}</th>
+                    <th className="px-5 text-right font-medium">{t.common.earnedCol}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -78,12 +82,12 @@ export default async function LeaderboardPage() {
                   ))}
                 </tbody>
               </table>
-              {rows.length <= 3 && <p className="py-8 text-center text-[13px] text-dim">More spots open.</p>}
+              {rows.length <= 3 && <p className="py-8 text-center text-[13px] text-dim">{L.more}</p>}
             </Card>
           </Reveal>
         </>
       ) : (
-        <Card className="mt-14 px-6 py-20 text-center text-[14px] text-mute">The board fills up as clips get approved.</Card>
+        <Card className="mt-14 px-6 py-20 text-center text-[14px] text-mute">{L.empty}</Card>
       )}
     </div>
   );

@@ -8,6 +8,8 @@ import { cn } from "@/lib/format";
 
 export type NavItem = { href: string; label: string; short?: string; icon: ReactNode; badge?: number; exact?: boolean };
 export type NavGroup = { title?: string; items: NavItem[] };
+export type ShellLabels = { menu: string; openMenu: string; closeMenu: string; more: string };
+const DEFAULT_LABELS: ShellLabels = { menu: "Menu", openMenu: "Open menu", closeMenu: "Close menu", more: "More" };
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -18,6 +20,7 @@ export function Shell({
   badge,
   id,
   mobileTabs = [],
+  labels = DEFAULT_LABELS,
 }: {
   groups: NavGroup[];
   children: ReactNode;
@@ -26,6 +29,7 @@ export function Shell({
   id: string;
   /** hrefs (max 4) shown in the mobile bottom bar; everything else lives in the menu */
   mobileTabs?: string[];
+  labels?: ShellLabels;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -105,7 +109,7 @@ export function Shell({
           <span className="min-w-0 flex-1 truncate text-right text-[13px] text-mute">{current?.label}</span>
           <button
             onClick={() => setOpen(true)}
-            aria-label="Open menu"
+            aria-label={labels.openMenu}
             className="relative grid size-10 place-items-center rounded-full border border-line2 bg-s1 active:scale-95"
           >
             <span className="flex w-4 flex-col gap-[4px]">
@@ -153,7 +157,7 @@ export function Shell({
                 </span>
                 {menuBadge > 0 && <span className="absolute -right-1.5 -top-0.5 size-2 rounded-full bg-ink" />}
               </span>
-              More
+              {labels.more}
             </button>
           </nav>
         )}
@@ -186,8 +190,8 @@ export function Shell({
               style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
             >
               <div className="flex h-14 items-center justify-between border-b border-line px-4">
-                <span className="text-[13px] text-mute">Menu</span>
-                <button onClick={() => setOpen(false)} aria-label="Close menu" className="grid size-10 place-items-center rounded-full border border-line2 text-[18px] leading-none">
+                <span className="text-[13px] text-mute">{labels.menu}</span>
+                <button onClick={() => setOpen(false)} aria-label={labels.closeMenu} className="grid size-10 place-items-center rounded-full border border-line2 text-[18px] leading-none">
                   ×
                 </button>
               </div>

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
+import { getT } from "@/lib/i18n/server";
+import { LangSwitch } from "@/components/site/lang-switch";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { t } = await getT();
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       <div className="grain relative hidden overflow-hidden border-r border-line lg:block">
@@ -17,17 +20,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Link href="/"><Logo /></Link>
           <div>
             <p className="font-serif text-[64px] leading-[0.95] tracking-[-0.01em]">
-              Your clips.
+              {t.authLayout.a}
               <br />
-              <span className="italic text-mute">Paid per view.</span>
+              <span className="italic text-mute">{t.authLayout.b}</span>
             </p>
             <p className="mt-6 max-w-sm text-[14px] leading-relaxed text-mute">
-              Invite-only music, film and brand campaigns from LOT3 Media. Post on your own page, keep your audience, get paid for the views.
+              {t.authLayout.sub}
             </p>
           </div>
         </div>
       </div>
-      <div className="page-enter flex flex-col justify-center px-6 py-14 sm:px-16">
+      <div className="page-enter relative flex flex-col justify-center px-6 py-14 sm:px-16">
+        <LangSwitch className="absolute right-6 top-6 sm:right-10" />
         <Link href="/" className="mb-12 lg:hidden"><Logo /></Link>
         <div className="mx-auto w-full max-w-[380px]">{children}</div>
       </div>

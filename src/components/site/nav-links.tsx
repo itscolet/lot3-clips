@@ -2,19 +2,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-
-const memberLinks = [
-  ["Campaigns", "/campaigns"],
-  ["Leaderboard", "/leaderboard"],
-] as const;
-const visitorLinks = [
-  ["How it works", "/#how"],
-  ["For brands", "/#brands"],
-] as const;
+import { useT } from "@/lib/i18n/client";
 
 export function NavLinks({ member }: { member: boolean }) {
   const path = usePathname();
-  const links = member ? memberLinks : visitorLinks;
+  const t = useT();
+  const links: [string, string][] = member
+    ? [[t.common.campaigns, "/campaigns"], [t.common.leaderboard, "/leaderboard"]]
+    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"]];
   return (
     <nav className="hidden items-center gap-1 md:flex">
       {links.map(([label, href]) => {

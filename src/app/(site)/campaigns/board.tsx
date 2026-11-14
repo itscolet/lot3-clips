@@ -5,15 +5,19 @@ import { CampaignCard } from "@/components/site/campaign-card";
 import { PlatformIcon } from "@/components/ui/icons";
 import type { CampaignCard as CC, Platform } from "@/lib/types";
 import { cn } from "@/lib/format";
+import { useT } from "@/lib/i18n/client";
+import { tLabel } from "@/lib/i18n/dict";
 
-const SORTS = { newest: "Newest", cpm: "Highest CPM", budget: "Most budget left" } as const;
+const SORTS = ["newest", "cpm", "budget"] as const;
 
 export function Board({ cards }: { cards: CC[] }) {
+  const t = useT();
+  const B = t.board;
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"live" | "complete">("live");
   const [platform, setPlatform] = useState<Platform | "all">("all");
   const [label, setLabel] = useState<string>("all");
-  const [sort, setSort] = useState<keyof typeof SORTS>("newest");
+  const [sort, setSort] = useState<(typeof SORTS)[number]>("newest");
 
   const labels = useMemo(() => Array.from(new Set(cards.map((c) => c.label))), [cards]);
   const list = useMemo(() => {
@@ -45,42 +49,42 @@ export function Board({ cards }: { cards: CC[] }) {
       <div className="sticky top-16 z-30 -mx-4 mt-8 flex flex-col gap-2.5 border-b border-line bg-black/85 px-4 py-3 sm:-mx-5 sm:px-5 backdrop-blur-xl md:mt-10 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
           <div className="flex shrink-0 rounded-full border border-line2 p-0.5">
-            {(["live", "complete"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)} className="relative h-8 rounded-full px-3.5 text-[12px] capitalize md:h-7">
-                {tab === t && (
+            {(["live", "complete"] as const).map((k) => (
+              <button key={k} onClick={() => setTab(k)} className="relative h-8 rounded-full px-3.5 text-[12px] md:h-7">
+                {tab === k && (
                   <motion.span layoutId="board-tab" className="absolute inset-0 rounded-full bg-ink" transition={{ type: "spring", stiffness: 500, damping: 38 }} />
                 )}
-                <span className={cn("relative", tab === t ? "text-black" : "text-mute")}>{t}</span>
+                <span className={cn("relative", tab === k ? "text-black" : "text-mute")}>{B.tabs[k]}</span>
               </button>
             ))}
           </div>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search"
+            placeholder={B.search}
             className="h-9 min-w-0 flex-1 rounded-full border border-line2 bg-s1 px-3.5 text-[16px] outline-none placeholder:text-dim focus:border-[#555] md:h-8 md:w-48 md:flex-none md:text-[12px]"
           />
         </div>
         <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:-mx-5 sm:px-5 [scrollbar-width:none] md:mx-0 md:flex-1 md:px-0 [&::-webkit-scrollbar]:hidden">
-          <button className={chip(platform === "all")} onClick={() => setPlatform("all")}>All platforms</button>
+          <button className={chip(platform === "all")} onClick={() => setPlatform("all")}>{B.allPlatforms}</button>
           {(["tiktok", "instagram", "youtube", "x"] as Platform[]).map((p) => (
             <button key={p} className={iconChip(platform === p)} onClick={() => setPlatform(p)} aria-label={p}>
               <PlatformIcon platform={p} className="block size-3.5" />
             </button>
           ))}
           <span className="mx-1 h-5 w-px shrink-0 bg-line2" />
-          <button className={chip(label === "all")} onClick={() => setLabel("all")}>All</button>
+          <button className={chip(label === "all")} onClick={() => setLabel("all")}>{B.all}</button>
           {labels.map((l) => (
-            <button key={l} className={cn(chip(label === l), "capitalize")} onClick={() => setLabel(l)}>{l}</button>
+            <button key={l} className={cn(chip(label === l), "capitalize")} onClick={() => setLabel(l)}>{tLabel(t, l)}</button>
           ))}
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value as keyof typeof SORTS)}
+            onChange={(e) => setSort(e.target.value as (typeof SORTS)[number])}
             className="h-9 shrink-0 rounded-full border border-line2 bg-s1 px-3 text-[12px] text-mute outline-none md:ml-auto md:h-8"
-            aria-label="Sort"
+            aria-label={B.sort}
           >
-            {Object.entries(SORTS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
+            {SORTS.map((k) => (
+              <option key={k} value={k}>{B.sorts[k]}</option>
             ))}
           </select>
         </div>
@@ -104,7 +108,7 @@ export function Board({ cards }: { cards: CC[] }) {
       </motion.div>
       {!list.length && (
         <p className="py-24 text-center text-[14px] text-mute">
-          {cards.length ? "No campaigns match those filters." : "No open invitations yet. They show up here the moment a campaign goes live."}
+          {cards.length ? B.noMatch : B.none}
         </p>
       )}
     </>
