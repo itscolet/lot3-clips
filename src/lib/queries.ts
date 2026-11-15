@@ -15,6 +15,8 @@ export const Q = {
   clients: "id,name,contact,notes,is_test,campaigns(id,title,status,budget,report_token)",
   campaignsWithClient: "*, clients(name)",
   myClips: "id,url,platform,status,views,earnings,reject_reason,created_at,campaigns(title,slug,cpm,status)",
+  supportInbox:
+    "id,number,subject,status,priority,category,tags,lang,preview,last_message_at,last_message_from,unread_admin,message_count,guest_name,guest_email,is_test,created_at,assigned_to,user_id,profiles!support_tickets_user_id_fkey(id,username)",
 } as const;
 
 export const ADMIN_QUERY_TABLES: Record<keyof typeof Q, string> = {
@@ -28,4 +30,5 @@ export const ADMIN_QUERY_TABLES: Record<keyof typeof Q, string> = {
   clients: "clients",
   campaignsWithClient: "campaigns",
   myClips: "submissions",
+  supportInbox: "support_tickets",
 };

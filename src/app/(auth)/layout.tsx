@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/icons";
 import { getT } from "@/lib/i18n/server";
 import { LangSwitch } from "@/components/site/lang-switch";
+import { SupportLauncherSlot } from "@/components/support/launcher-slot";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const { t } = await getT();
@@ -35,6 +36,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Link href="/" className="mb-12 lg:hidden"><Logo /></Link>
         <div className="mx-auto w-full max-w-[380px]">{children}</div>
       </div>
+      <SupportLauncherSlot />
     </div>
   );
 }
