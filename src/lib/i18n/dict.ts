@@ -77,7 +77,6 @@ const en = {
     podcast: "podcast",
     sports: "sports",
     other: "other",
-    movie: "movie",
   } as Record<string, string>,
   time: {
     s: (n: number) => `${n}s ago`,
@@ -500,7 +499,6 @@ const es: Dict = {
     podcast: "pódcast",
     sports: "deportes",
     other: "otro",
-    movie: "cine",
   },
   time: {
     s: (n: number) => `hace ${n} s`,

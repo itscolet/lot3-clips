@@ -50,7 +50,7 @@ export function CampaignForm({ c, clients }: { c?: Campaign; clients: { id: stri
           </Field>
           <Field label="Category">
             <Select name="label" defaultValue={c?.label ?? "music"}>
-              {["music", "movie", "brand", "podcast", "sports", "other"].map((l) => <option key={l} value={l}>{l}</option>)}
+              {["music", "brand", "podcast", "sports", "other"].map((l) => <option key={l} value={l}>{l}</option>)}
             </Select>
           </Field>
           <Field label="Status">

@@ -48,7 +48,7 @@ body {
   letter-spacing: -0.025em;
 }
 
-/* subtle film grain for premium surfaces */
+/* subtle grain texture for premium surfaces */
 .grain {
   position: relative;
   isolation: isolate;
