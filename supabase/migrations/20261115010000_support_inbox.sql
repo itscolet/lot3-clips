@@ -236,3 +236,8 @@ insert into public.support_saved_replies (title, body, body_es, sort) values
 ('All sorted',
  'All sorted on our end, so I''ll mark this as resolved. If anything else comes up, just reply here and it''ll reopen.',
  'Ya quedó resuelto de nuestro lado, así que voy a marcar esto como resuelto. Si surge algo más, solo responde aquí y se volverá a abrir.', 5);
+
+-- Supabase grants EXECUTE to anon/authenticated by default; keep internal functions private.
+revoke execute on function public.admin_user_email(uuid) from anon;
+revoke execute on function public.support_after_message() from anon, authenticated;
+revoke execute on function public.support_touch() from anon, authenticated;
