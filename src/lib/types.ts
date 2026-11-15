@@ -106,3 +106,48 @@ export type Stats = {
   spent: number;
   clippers: number;
 };
+
+export type SupportCategory = "payouts" | "campaign" | "verification" | "account" | "bug" | "brand" | "other";
+export type SupportStatus = "open" | "waiting" | "resolved";
+export type SupportPriority = "low" | "normal" | "high" | "urgent";
+
+export type SupportTicket = {
+  id: string;
+  number: number;
+  user_id: string | null;
+  guest_name: string | null;
+  guest_email: string | null;
+  access_token: string;
+  subject: string;
+  category: SupportCategory;
+  campaign_id: string | null;
+  status: SupportStatus;
+  priority: SupportPriority;
+  assigned_to: string | null;
+  tags: string[];
+  lang: "en" | "es";
+  message_count: number;
+  last_message_at: string;
+  last_message_from: string | null;
+  preview: string | null;
+  unread_admin: boolean;
+  unread_user: boolean;
+  first_response_at: string | null;
+  resolved_at: string | null;
+  is_test: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SupportMessage = {
+  id: string;
+  ticket_id: string;
+  author_id: string | null;
+  author_role: "clipper" | "guest" | "admin" | "system";
+  body: string;
+  internal: boolean;
+  attachment_path: string | null;
+  created_at: string;
+  /** signed URL, added server-side when there is an attachment */
+  attachment_url?: string | null;
+};

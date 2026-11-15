@@ -163,7 +163,7 @@ export const TESTS: TestDef[] = [
     async run(c, s) {
       const admin = await c.sb.rpc("is_admin");
       s.check("Your session is recognized as admin", admin.data === true, admin.error?.message);
-      const tables = ["profiles", "campaigns", "submissions", "social_accounts", "payouts", "flags", "clients", "view_snapshots", "sync_runs"];
+      const tables = ["profiles", "campaigns", "submissions", "social_accounts", "payouts", "flags", "clients", "view_snapshots", "sync_runs", "support_tickets", "support_messages", "support_saved_replies"];
       for (const t of tables) {
         const r = await c.sb.from(t).select("*", { count: "exact", head: true });
         s.check(`Table "${t}" reachable`, !r.error, r.error?.message);
@@ -472,6 +472,73 @@ export const TESTS: TestDef[] = [
     },
   },
   {
+    key: "support",
+    name: "Support inbox: visitor message → admin reply → resolve",
+    area: "Support",
+    async run(c, s) {
+      const created = await c.anon
+        .rpc("support_create", {
+          p_subject: `Test ticket ${c.ns}`,
+          p_category: "payouts",
+          p_body: "When do I get paid?",
+          p_guest_name: "Test Visitor",
+          p_guest_email: `visitor-${c.ns}@lot3clips.test`,
+          p_lang: "es",
+        })
+        .single<{ id: string; number: number; access_token: string }>();
+      s.check("Visitor can message support without an account", !created.error && !!created.data, created.error?.message ?? "Run supabase/migrations/20261115010000_support_inbox.sql");
+      const { id, number, access_token: token } = created.data!;
+      must(await c.sb.from("support_tickets").update({ is_test: true }).eq("id", id).select("id").single(), "tag as test");
+      s.note("Ticket created", `#${number}`);
+
+      const anonList = await c.anon.from("support_tickets").select("id").eq("id", id);
+      s.check("Visitors can't list tickets", (anonList.data ?? []).length === 0);
+      const anonMsgs = await c.anon.from("support_messages").select("id").eq("ticket_id", id);
+      s.check("Visitors can't read messages directly", (anonMsgs.data ?? []).length === 0);
+      const bad = await c.anon.rpc("support_create", { p_subject: "Bad email", p_category: "other", p_body: "hello", p_guest_name: "X", p_guest_email: "not-an-email" });
+      s.check("Invalid email is rejected", !!bad.error && bad.error.message.includes("bad_email"), bad.error?.message);
+
+      const t1 = must(await c.sb.from("support_tickets").select("status,unread_admin,lang,preview").eq("id", id).single(), "read ticket");
+      s.check("New ticket lands in Needs reply, unread", t1.status === "open" && t1.unread_admin === true);
+      s.check("Language and preview saved", t1.lang === "es" && t1.preview === "When do I get paid?", `${t1.lang} · ${t1.preview}`);
+
+      type Th = { messages: unknown[] } | null;
+      const th = await c.anon.rpc("support_thread", { p_token: token });
+      s.check("Private link opens the conversation", (th.data as Th)?.messages?.length === 1, th.error?.message);
+      const wrong = await c.anon.rpc("support_thread", { p_token: "0".repeat(36) });
+      s.check("Wrong link opens nothing", wrong.data === null);
+
+      const {
+        data: { user },
+      } = await c.sb.auth.getUser();
+      must(await c.sb.from("support_messages").insert({ ticket_id: id, author_id: user?.id, author_role: "admin", body: "Internal: check the ledger", internal: true }).select("id").single(), "internal note");
+      const th2 = await c.anon.rpc("support_thread", { p_token: token });
+      s.check("Internal notes stay hidden from the visitor", (th2.data as Th)?.messages?.length === 1);
+
+      must(await c.sb.from("support_messages").insert({ ticket_id: id, author_id: user?.id, author_role: "admin", body: "¡Hola! Pagamos cuando termina la campaña." }).select("id").single(), "admin reply");
+      const t2 = must(await c.sb.from("support_tickets").select("status,unread_user,first_response_at").eq("id", id).single(), "after reply");
+      s.check("Admin reply → Waiting, shown to visitor as a new reply", t2.status === "waiting" && t2.unread_user === true && !!t2.first_response_at);
+
+      const rp = await c.anon.rpc("support_reply", { p_ticket: id, p_body: "¡Gracias!", p_token: token });
+      s.check("Visitor can reply with their private link", !rp.error, rp.error?.message);
+      const badRp = await c.anon.rpc("support_reply", { p_ticket: id, p_body: "hi", p_token: "x".repeat(36) });
+      s.check("A wrong link can't reply", !!badRp.error);
+      const t3 = must(await c.sb.from("support_tickets").select("status,unread_admin,message_count").eq("id", id).single(), "after visitor reply");
+      s.check("Visitor reply moves it back to Needs reply", t3.status === "open" && t3.unread_admin === true && t3.message_count === 3, `${t3.message_count} messages`);
+
+      await c.anon.rpc("support_user_action", { p_ticket: id, p_action: "resolve", p_token: token });
+      const t4 = must(await c.sb.from("support_tickets").select("status,resolved_at").eq("id", id).single(), "after resolve");
+      s.check("Visitor can mark it resolved", t4.status === "resolved" && !!t4.resolved_at);
+
+      must(await c.sb.from("support_tickets").update({ status: "open", priority: "urgent", tags: ["test"] }).eq("id", id).select("id").single(), "admin edits");
+      const t5 = must(await c.sb.from("support_tickets").select("status,priority,tags,resolved_at").eq("id", id).single(), "after edits");
+      s.check("Admin can reopen, prioritize and tag", t5.status === "open" && t5.priority === "urgent" && (t5.tags as string[]).includes("test") && t5.resolved_at === null);
+
+      const replies = await c.sb.from("support_saved_replies").select("id,body_es");
+      s.soft("Saved replies ready", (replies.data ?? []).length > 0, `${replies.data?.length ?? 0} saved · ${(replies.data ?? []).filter((r) => r.body_es).length} with Spanish`);
+    },
+  },
+  {
     key: "apify",
     name: "Live Apify fetch (real post)",
     area: "Tracking",
@@ -531,6 +598,7 @@ export async function runTestSuite(
 }
 
 export async function purgeTestData(sb: SupabaseClient) {
+  await sb.from("support_tickets").delete().eq("is_test", true);
   const camp = await sb.from("campaigns").delete().eq("is_test", true).select("id");
   await sb.from("payouts").delete().eq("is_test", true);
   await sb.from("flags").delete().eq("is_test", true);
@@ -597,5 +665,37 @@ export async function seedDemo(sb: SupabaseClient) {
   // a flag to look at
   const { data: anySub } = await sb.from("submissions").select("id,user_id").in("campaign_id", campIds).eq("status", "approved").limit(1).maybeSingle();
   if (anySub) await sb.from("flags").insert({ submission_id: anySub.id, user_id: anySub.user_id, type: "view_spike", detail: "+120,000 views since last check (was 3,100). Demo flag.", is_test: true });
-  return { campaigns: campIds.length, clippers: users.length, submissions: subs };
+  // support conversations to triage
+  const {
+    data: { user: me },
+  } = await sb.auth.getUser();
+  const demoTickets: { row: Record<string, unknown>; msgs: { role: string; body: string; mine?: boolean; internal?: boolean }[] }[] = [
+    {
+      row: { user_id: users[0]?.id, subject: "Payout for ROA still pending?", category: "payouts", campaign_id: campIds[0] ?? null, priority: "normal" },
+      msgs: [{ role: "clipper", body: "Hey! My ROA clips have ~180k views but the payout still says pending. When does it switch to available?" }],
+    },
+    {
+      row: { guest_name: "Carlos", guest_email: "carlos@lot3clips.test", subject: "¿Cómo me uno a las campañas de música?", category: "account", lang: "es", priority: "high" },
+      msgs: [{ role: "guest", body: "Hola, tengo una página de clips de conciertos con 40k seguidores en TikTok. ¿Cómo me uno a las campañas? ¿Aceptan páginas en español?" }],
+    },
+    {
+      row: { user_id: users[1]?.id, subject: "Clip rejected for sound", category: "campaign", campaign_id: campIds[1] ?? null, tags: ["sound"] },
+      msgs: [
+        { role: "clipper", body: "My Brray clip got rejected for the sound but I used the original audio. Can you double check? https://www.tiktok.com/@demo/video/123" },
+        { role: "admin", body: "Internal: sound is at ~10% volume, under the brief.", mine: true, internal: true },
+        { role: "admin", body: "Thanks for flagging! The sound is there but very quiet. The brief needs it clearly audible. Repost with the volume up and send the new link.", mine: true },
+      ],
+    },
+  ];
+  let tickets = 0;
+  for (const d of demoTickets) {
+    if (!d.row.user_id && !d.row.guest_email) continue;
+    const { data: tk } = await sb.from("support_tickets").insert({ ...d.row, is_test: true }).select("id").single();
+    if (!tk) continue;
+    tickets++;
+    for (const m of d.msgs) {
+      await sb.from("support_messages").insert({ ticket_id: tk.id, author_role: m.role, author_id: m.mine ? me?.id : m.role === "clipper" ? d.row.user_id : null, body: m.body, internal: !!m.internal });
+    }
+  }
+  return { campaigns: campIds.length, clippers: users.length, submissions: subs, tickets };
 }

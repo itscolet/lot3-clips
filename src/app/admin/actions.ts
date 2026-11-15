@@ -333,5 +333,5 @@ export async function seedDemoData(): Promise<AState> {
   const r = await seedDemo(supabase);
   await log("testlab.seed", "test", null, r);
   all();
-  return { ok: true, message: `Seeded demo: ${r.campaigns} campaigns, ${r.clippers} clippers, ${r.submissions} clips. All marked TEST.` };
+  return { ok: true, message: `Seeded demo: ${r.campaigns} campaigns, ${r.clippers} clippers, ${r.submissions} clips, ${r.tickets} support conversations. All marked TEST.` };
 }

@@ -125,6 +125,8 @@ export function Lab({
               ["Resolve a fraud flag", "/admin/flags"],
               ["Complete the campaign, mark payouts paid", "/admin/payouts"],
               ["Open the client report link", "/admin/clients"],
+              ["Send a support message as a visitor (incognito)", "/support"],
+              ["Reply, add a note, resolve it in Support", "/admin/support"],
               ["Check the activity log", "/admin/activity"],
             ].map(([l, h], i) => (
               <li key={l}>

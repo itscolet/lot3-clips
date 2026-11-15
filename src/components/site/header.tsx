@@ -64,7 +64,7 @@ export async function Footer() {
         </div>
         <FooterCol
           title={t.footer.clippers}
-          links={[[t.common.getInvited, "/signup"], [t.common.login, "/login"], [t.common.howItWorks, "/#how"]]}
+          links={[[t.common.getInvited, "/signup"], [t.common.login, "/login"], [t.common.howItWorks, "/#how"], [t.support.nav, "/support"]]}
         />
         <FooterCol title={t.footer.brands} links={[[t.home.launch, "mailto:partnerships@lot3media.com"], ["LOT3 Media", "https://lot3media.com"]]} />
         <FooterCol title={t.footer.policy} links={[[t.footer.terms, "/terms"]]} />

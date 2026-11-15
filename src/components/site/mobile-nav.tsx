@@ -16,8 +16,8 @@ export function MobileNav({ member, admin }: { member: boolean; admin: boolean }
     setOpen(false);
   }
   const links: [string, string][] = member
-    ? [[t.common.yourInvitations, "/campaigns"], [t.common.leaderboard, "/leaderboard"], [t.common.dashboard, "/dashboard"], ...(admin ? ([[t.common.admin, "/admin"]] as [string, string][]) : [])]
-    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"], [t.common.login, "/login"]];
+    ? [[t.common.yourInvitations, "/campaigns"], [t.common.leaderboard, "/leaderboard"], [t.common.dashboard, "/dashboard"], [t.support.nav, "/dashboard/support"], ...(admin ? ([[t.common.admin, "/admin"]] as [string, string][]) : [])]
+    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"], [t.support.nav, "/support"], [t.common.login, "/login"]];
   return (
     <div className="md:hidden">
       <button

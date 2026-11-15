@@ -8,8 +8,8 @@ export function NavLinks({ member }: { member: boolean }) {
   const path = usePathname();
   const t = useT();
   const links: [string, string][] = member
-    ? [[t.common.campaigns, "/campaigns"], [t.common.leaderboard, "/leaderboard"]]
-    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"]];
+    ? [[t.common.campaigns, "/campaigns"], [t.common.leaderboard, "/leaderboard"], [t.support.nav, "/support"]]
+    : [[t.common.howItWorks, "/#how"], [t.common.forBrands, "/#brands"], [t.support.nav, "/support"]];
   return (
     <nav className="hidden items-center gap-1 md:flex">
       {links.map(([label, href]) => {

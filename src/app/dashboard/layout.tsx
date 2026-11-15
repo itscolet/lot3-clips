@@ -1,4 +1,4 @@
-import { Banknote, LayoutGrid, Link2, Megaphone, Settings, Shield } from "lucide-react";
+import { Banknote, LayoutGrid, LifeBuoy, Link2, Megaphone, Settings, Shield } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { Shell } from "@/components/site/shell";
 import { signOut } from "./actions";
@@ -6,8 +6,9 @@ import { getT } from "@/lib/i18n/server";
 import { LangSwitch } from "@/components/site/lang-switch";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [{ profile }, { t }] = await Promise.all([requireUser(), getT()]);
+  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
   const N = t.nav;
+  const { count: unread } = await supabase.from("support_tickets").select("id", { count: "exact", head: true }).eq("user_id", profile.id).eq("unread_user", true);
   const groups = [
     {
       items: [
@@ -15,6 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         { href: "/campaigns", label: N.invitations, short: N.invitesShort, icon: <Megaphone /> },
         { href: "/dashboard/accounts", label: N.accounts, short: N.accountsShort, icon: <Link2 /> },
         { href: "/dashboard/payouts", label: N.payouts, icon: <Banknote /> },
+        { href: "/dashboard/support", label: t.support.nav, icon: <LifeBuoy />, badge: unread ?? 0 },
         { href: "/dashboard/settings", label: N.settings, icon: <Settings /> },
       ],
     },
