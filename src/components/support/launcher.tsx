@@ -55,7 +55,8 @@ export function SupportLauncher({ username, unread = 0 }: { username?: string | 
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={S.help}
-        className="fixed bottom-5 right-5 z-50 flex h-12 items-center gap-2 rounded-full bg-ink pl-4 pr-5 text-[13px] font-medium text-black shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:bottom-6 sm:right-6"
+        data-signup={path.startsWith("/signup")}
+        className="fixed bottom-5 right-5 z-50 flex h-12 data-[signup=true]:max-sm:hidden items-center gap-2 rounded-full bg-ink pl-4 pr-5 text-[13px] font-medium text-black shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:bottom-6 sm:right-6"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
         whileTap={{ scale: 0.96 }}
         initial={{ opacity: 0, y: 12 }}

@@ -128,6 +128,7 @@ export function SubmitButton({
   name,
   value,
   formAction,
+  disabled,
 }: {
   children: ReactNode;
   pendingText?: string;
@@ -135,6 +136,7 @@ export function SubmitButton({
   name?: string;
   value?: string;
   formAction?: (fd: FormData) => void | Promise<void>;
+  disabled?: boolean;
 } & BtnProps) {
   const status = useFormStatus();
   const ctxPending = useContext(PendingCtx);
@@ -145,8 +147,8 @@ export function SubmitButton({
       name={name}
       value={value}
       formAction={formAction}
-      disabled={pending}
-      className={cn(btn({ variant, size }), className)}
+      disabled={pending || disabled}
+      className={cn(btn({ variant, size }), disabled && !pending && "cursor-not-allowed opacity-40", className)}
     >
       {pending ? (
         <>

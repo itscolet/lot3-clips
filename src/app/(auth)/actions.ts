@@ -37,12 +37,25 @@ export async function signUp(_: AuthState, fd: FormData): Promise<AuthState> {
   const password = String(fd.get("password") ?? "");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: t.authErr.badEmail };
   if (password.length < 8) return { error: t.authErr.weakPw };
+  const emailOptIn = fd.get("email_opt_in") === "1";
+  const smsOptIn = fd.get("sms_opt_in") === "1";
+  const rawPhone = String(fd.get("phone") ?? "").replace(/[\s().-]/g, "");
+  const phone = rawPhone ? (rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`) : "";
+  if (smsOptIn && !/^\+[1-9]\d{7,14}$/.test(phone)) return { error: t.authErr.badPhone };
+  const meta = {
+    username,
+    lang,
+    terms_version: t.terms.version,
+    email_opt_in: emailOptIn,
+    sms_opt_in: smsOptIn,
+    phone: smsOptIn ? phone : "",
+  };
   const dest = next === "/campaigns" || next === "/dashboard" ? "/dashboard/accounts" : next;
 
   // We hand-pick who we invite, so skip email confirmation: create the account already confirmed, then sign in.
   const svc = supabaseService();
   if (svc) {
-    const { error: createErr } = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { username, lang } });
+    const { error: createErr } = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: meta });
     if (createErr) return { error: authError(createErr.message, t) };
     const { error: loginErr } = await sb.auth.signInWithPassword({ email, password });
     if (loginErr) return { error: authError(loginErr.message, t) };
@@ -53,7 +66,7 @@ export async function signUp(_: AuthState, fd: FormData): Promise<AuthState> {
   const { data, error } = await sb.auth.signUp({
     email,
     password,
-    options: { data: { username, lang }, emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` },
+    options: { data: meta, emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` },
   });
   if (error) return { error: authError(error.message, t) };
   if (!data.session) return { message: t.authErr.confirm };

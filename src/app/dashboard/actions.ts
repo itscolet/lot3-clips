@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { detectPlatform, normalizeUrl } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
+import { alertClaimBlocked } from "@/lib/notify";
 import type { Dict } from "@/lib/i18n/dict";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string } | null;
@@ -54,7 +55,10 @@ export async function claimAccount(_: ClaimState, fd: FormData): Promise<ClaimSt
   revalidatePath("/dashboard", "layout");
   if (r.status === "claimed") return { ok: true, message: t.act.claimed(r.handle ?? handle) };
   if (r.status === "yours") return { ok: true, message: t.act.alreadyYours(r.handle ?? handle) };
-  if (r.status === "taken") return { error: t.act.claimTaken(r.handle ?? handle), ticket: r.ticket };
+  if (r.status === "taken") {
+    if (r.ticket) alertClaimBlocked(r.ticket);
+    return { error: t.act.claimTaken(r.handle ?? handle), ticket: r.ticket };
+  }
   return { error: t.act.badHandle };
 }
 
@@ -107,4 +111,26 @@ export async function signOut() {
   const { supabase } = await requireUser();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+/** Clipper notification preferences (Settings). */
+export async function saveNotifications(_: ActionState, fd: FormData): Promise<ActionState> {
+  const [{ supabase, profile }, { lang, t }] = await Promise.all([requireUser(), getT()]);
+  const email_opt_in = fd.get("email_opt_in") === "1";
+  const sms_opt_in = fd.get("sms_opt_in") === "1";
+  const raw = String(fd.get("phone") ?? "").replace(/[\s().-]/g, "");
+  const phone = raw ? (raw.startsWith("+") ? raw : `+${raw}`) : null;
+  if (phone && !/^\+[1-9]\d{7,14}$/.test(phone)) return { error: t.authErr.badPhone };
+  if (sms_opt_in && !phone) return { error: t.authErr.badPhone };
+  const row = { email_opt_in, sms_opt_in, phone, lang };
+  const { data, error } = await supabase.from("notification_prefs").update(row).eq("user_id", profile.id).select("user_id");
+  if (error) return { error: error.message };
+  if (!data?.length) {
+    // accounts created before notifications existed: create the row with the service key
+    const { supabaseService } = await import("@/lib/supabase/server");
+    const svc = supabaseService();
+    if (svc) await svc.from("notification_prefs").upsert({ user_id: profile.id, ...row });
+  }
+  revalidatePath("/dashboard/settings");
+  return { ok: true, message: t.act.saved };
 }

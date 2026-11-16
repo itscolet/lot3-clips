@@ -163,7 +163,7 @@ export const TESTS: TestDef[] = [
     async run(c, s) {
       const admin = await c.sb.rpc("is_admin");
       s.check("Your session is recognized as admin", admin.data === true, admin.error?.message);
-      const tables = ["profiles", "campaigns", "submissions", "social_accounts", "payouts", "flags", "clients", "view_snapshots", "sync_runs", "support_tickets", "support_messages", "support_saved_replies"];
+      const tables = ["profiles", "campaigns", "submissions", "social_accounts", "payouts", "flags", "clients", "view_snapshots", "sync_runs", "support_tickets", "support_messages", "support_saved_replies", "notification_prefs", "notifications"];
       for (const t of tables) {
         const r = await c.sb.from(t).select("*", { count: "exact", head: true });
         s.check(`Table "${t}" reachable`, !r.error, r.error?.message);
@@ -519,6 +519,31 @@ export const TESTS: TestDef[] = [
     },
   },
   {
+    key: "notifications",
+    name: "Notifications: opt-ins, unsubscribe, email + text setup",
+    area: "Clippers",
+    async run(c, s) {
+      const prefs = await c.sb.from("notification_prefs").select("user_id,email_opt_in,sms_opt_in,unsub_token").limit(1);
+      s.check("Notification preferences table ready", !prefs.error, prefs.error?.message ?? "Run supabase/migrations/20261116060000_notifications.sql");
+      const anon = await c.anon.from("notification_prefs").select("user_id").limit(1);
+      s.check("Visitors can't read anyone's phone or opt-ins", (anon.data ?? []).length === 0);
+      const bad = await c.anon.rpc("unsubscribe_email", { p_token: "0".repeat(32) });
+      s.check("Bad unsubscribe links do nothing", bad.data === false, bad.error?.message);
+      const rec = await c.sb.rpc("notification_recipients");
+      s.check("Admin can list announcement recipients", !rec.error, rec.error?.message);
+      const list = (rec.data ?? []) as { email_opt_in: boolean; sms_opt_in: boolean; email: string | null; phone: string | null }[];
+      s.note("Opted in", `${list.filter((r) => r.email_opt_in && r.email).length} email · ${list.filter((r) => r.sms_opt_in && r.phone).length} text`);
+      const anonRec = await c.anon.rpc("notification_recipients");
+      s.check("Visitors can't list recipients", !!anonRec.error || (anonRec.data ?? []).length === 0);
+      const logRow = await c.sb.from("notifications").insert({ channel: "email", kind: "test", recipient: "testlab@lot3clips.test", status: "skipped", is_test: true }).select("id").single();
+      s.check("Delivery log writable by admin", !logRow.error, logRow.error?.message);
+      if (logRow.data) await c.sb.from("notifications").delete().eq("id", logRow.data.id);
+      s.soft("Email provider set (RESEND_API_KEY)", !!process.env.RESEND_API_KEY, process.env.RESEND_API_KEY ? "present" : "Add RESEND_API_KEY to send email");
+      s.soft("Text provider set (TWILIO_*)", !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM), "Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM to send texts");
+      s.soft("Mailing address set for campaign emails", !!process.env.EMAIL_POSTAL_ADDRESS, process.env.EMAIL_POSTAL_ADDRESS ? "present" : "Add EMAIL_POSTAL_ADDRESS (required by anti-spam law)");
+    },
+  },
+  {
     key: "support",
     name: "Support inbox: visitor message → admin reply → resolve",
     area: "Support",
@@ -646,6 +671,7 @@ export async function runTestSuite(
 
 export async function purgeTestData(sb: SupabaseClient) {
   await sb.from("support_tickets").delete().eq("is_test", true);
+  await sb.from("notifications").delete().eq("is_test", true);
   const camp = await sb.from("campaigns").delete().eq("is_test", true).select("id");
   await sb.from("payouts").delete().eq("is_test", true);
   await sb.from("flags").delete().eq("is_test", true);

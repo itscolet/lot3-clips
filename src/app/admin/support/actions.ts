@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { SUPPORT_CATEGORIES, SUPPORT_PRIORITIES } from "@/lib/support";
+import { notifySupportReply } from "@/lib/notify";
 
 export type InboxState = { ok?: boolean; error?: string; message?: string } | null;
 
@@ -28,6 +29,7 @@ export async function adminReply(_: InboxState, fd: FormData): Promise<InboxStat
   // claim unassigned tickets on first reply
   if (!internal) await supabase.from("support_tickets").update({ assigned_to: profile.id }).eq("id", ticket).is("assigned_to", null);
   await log(internal ? "support.note" : resolve ? "support.reply_resolve" : "support.reply", ticket);
+  if (!internal) notifySupportReply(ticket, body);
   refresh();
   return { ok: true, message: internal ? "Note added." : resolve ? "Sent and resolved." : "Sent." };
 }
@@ -137,6 +139,7 @@ export async function resolveClaim(fd: FormData): Promise<InboxState> {
     });
   }
   await supabase.from("support_messages").insert({ ticket_id: ticketId, author_id: profile.id, author_role: "admin", body: CLAIM_MSG[decision][lang](handle) });
+  notifySupportReply(ticketId, CLAIM_MSG[decision][lang](handle));
   await supabase.from("support_tickets").update({ status: "resolved", meta: { ...meta, decision, decided_by: profile.username, decided_at: new Date().toISOString() } }).eq("id", ticketId);
   await supabase.from("activity_log").insert({ actor_id: profile.id, action: `claim.${decision}`, entity: "social_account", entity_id: meta.account_id, meta: { ticket: ticketId, handle } });
   refresh();
