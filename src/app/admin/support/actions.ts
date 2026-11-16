@@ -93,3 +93,52 @@ export async function deleteReply(fd: FormData) {
   await supabase.from("support_saved_replies").delete().eq("id", str(fd, "id"));
   revalidatePath("/admin/support", "layout");
 }
+
+// ---------------- page claim conflicts ----------------
+type ClaimMeta = { type?: string; account_id?: string; handle?: string; platform?: string; owner_id?: string; owner_username?: string; claimant_id?: string; claimant_username?: string };
+
+const CLAIM_MSG = {
+  transfer: {
+    en: (h: string) => `Good news: @${h} is now on your account. You can start submitting clips from it.`,
+    es: (h: string) => `¡Buenas noticias! @${h} ya está en tu cuenta. Ya puedes empezar a enviar clips desde ella.`,
+  },
+  keep: {
+    en: (h: string) => `We checked, and @${h} stays with the account that claimed it first. If you can show it's yours, reply here with a screenshot of you logged into it and we'll take another look.`,
+    es: (h: string) => `Lo revisamos y @${h} se queda con la cuenta que la reclamó primero. Si puedes demostrar que es tuya, responde aquí con una captura de pantalla donde se vea que tienes la sesión iniciada y lo volvemos a revisar.`,
+  },
+};
+
+/** Resolve a blocked page claim: move the page to the claimant, or keep it with the owner. Tells the claimant either way. */
+export async function resolveClaim(fd: FormData): Promise<InboxState> {
+  const { supabase, profile } = await requireAdmin();
+  const ticketId = str(fd, "ticket_id");
+  const decision = str(fd, "decision") as "transfer" | "keep";
+  if (decision !== "transfer" && decision !== "keep") return { error: "Unknown decision." };
+  const { data: tk } = await supabase.from("support_tickets").select("id,lang,meta").eq("id", ticketId).single();
+  const meta = (tk?.meta ?? {}) as ClaimMeta;
+  if (!tk || meta.type !== "claim_conflict" || !meta.account_id || !meta.claimant_id) return { error: "This ticket isn't a page claim." };
+  const lang = tk.lang === "es" ? "es" : "en";
+  const handle = meta.handle ?? "";
+
+  if (decision === "transfer") {
+    const { data: acc } = await supabase.from("social_accounts").select("id,user_id").eq("id", meta.account_id).maybeSingle();
+    if (!acc) return { error: "That page no longer exists." };
+    if (acc.user_id === meta.claimant_id) return { error: "The claimant already owns this page." };
+    const { error } = await supabase.from("social_accounts").update({ user_id: meta.claimant_id, verified_at: new Date().toISOString() }).eq("id", acc.id);
+    if (error) return { error: error.message };
+    await supabase.from("support_messages").insert({
+      ticket_id: ticketId, author_id: profile.id, author_role: "admin", internal: true,
+      body: `Transferred @${handle} from @${meta.owner_username} to @${meta.claimant_username}. Clips @${meta.owner_username} already submitted (and their earnings) stay with them.`,
+    });
+  } else {
+    await supabase.from("support_messages").insert({
+      ticket_id: ticketId, author_id: profile.id, author_role: "admin", internal: true,
+      body: `Kept @${handle} with @${meta.owner_username}.`,
+    });
+  }
+  await supabase.from("support_messages").insert({ ticket_id: ticketId, author_id: profile.id, author_role: "admin", body: CLAIM_MSG[decision][lang](handle) });
+  await supabase.from("support_tickets").update({ status: "resolved", meta: { ...meta, decision, decided_by: profile.username, decided_at: new Date().toISOString() } }).eq("id", ticketId);
+  await supabase.from("activity_log").insert({ actor_id: profile.id, action: `claim.${decision}`, entity: "social_account", entity_id: meta.account_id, meta: { ticket: ticketId, handle } });
+  refresh();
+  return { ok: true, message: decision === "transfer" ? `@${handle} moved to @${meta.claimant_username}.` : `@${handle} kept with @${meta.owner_username}.` };
+}

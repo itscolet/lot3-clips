@@ -472,6 +472,53 @@ export const TESTS: TestDef[] = [
     },
   },
   {
+    key: "claims",
+    name: "Page claims: claim by username, duplicate blocked, admin notified",
+    area: "Clippers",
+    async run(c, s) {
+      const owner = await makeClipper(c, "own");
+      const acc = await makeAccount(c, owner, "tiktok");
+      const { handle } = must(await c.sb.from("social_accounts").select("handle").eq("id", acc.id).single(), "read handle");
+      const created: string[] = [];
+      try {
+        const fresh = await c.sb.rpc("claim_page", { p_platform: "youtube", p_handle: `@T_${c.ns}_YT`, p_lang: "en" });
+        const fr = fresh.data as { status: string; id?: string; handle?: string } | null;
+        s.check("Claiming a new page works instantly", fr?.status === "claimed", fresh.error?.message ?? JSON.stringify(fr) ?? "Run supabase/migrations/20261116040000_page_claims.sql");
+        if (fr?.id) {
+          created.push(fr.id);
+          await c.sb.from("social_accounts").update({ is_test: true }).eq("id", fr.id);
+          const row = must(await c.sb.from("social_accounts").select("handle,verified_at").eq("id", fr.id).single(), "read claim");
+          s.check("Handle normalized (no @, lowercase) and page active", row.handle === `t_${c.ns}_yt`.toLowerCase() && !!row.verified_at, row.handle);
+        }
+        const again = await c.sb.rpc("claim_page", { p_platform: "youtube", p_handle: `t_${c.ns}_yt` });
+        s.check("Re-claiming your own page says it's already yours", (again.data as { status: string } | null)?.status === "yours");
+        const bad = await c.sb.rpc("claim_page", { p_platform: "tiktok", p_handle: "has spaces!" });
+        s.check("Invalid usernames are rejected", (bad.data as { status: string } | null)?.status === "invalid");
+
+        const dup = await c.sb.rpc("claim_page", { p_platform: "tiktok", p_handle: `https://www.tiktok.com/@${handle.toUpperCase()}?lang=es`, p_lang: "es" });
+        const dr = dup.data as { status: string; ticket?: number } | null;
+        s.check("Claiming someone else's page is blocked (even via pasted link)", dr?.status === "taken" && !!dr.ticket, dup.error?.message ?? JSON.stringify(dr));
+        const still = must(await c.sb.from("social_accounts").select("user_id").eq("id", acc.id).single(), "owner check");
+        s.check("Page stays with the original owner", still.user_id === owner);
+        if (dr?.ticket) {
+          s.note("Conflict ticket", `#${dr.ticket}`);
+          const tk = must(await c.sb.from("support_tickets").select("id,priority,tags,lang,status,unread_admin,meta").eq("number", dr.ticket).single(), "ticket");
+          await c.sb.from("support_tickets").update({ is_test: true }).eq("id", tk.id);
+          const m = tk.meta as Record<string, unknown>;
+          s.check("Admin gets a high-priority, tagged, unread ticket", tk.priority === "high" && (tk.tags as string[]).includes("claim-conflict") && tk.status === "open" && tk.unread_admin === true);
+          s.check("Ticket has owner, claimant and risk", m.type === "claim_conflict" && m.owner_id === owner && typeof m.risk === "string" && m.account_id === acc.id);
+          const msgs = must(await c.sb.from("support_messages").select("internal,body").eq("ticket_id", tk.id), "messages");
+          s.check("Claimant told in their language + admin brief attached", msgs.some((x: { internal: boolean; body: string }) => !x.internal && x.body.startsWith("No pudimos")) && msgs.some((x: { internal: boolean; body: string }) => x.internal && x.body.includes("CURRENT OWNER")));
+          await c.sb.rpc("claim_page", { p_platform: "tiktok", p_handle: handle });
+          const tk2 = must(await c.sb.from("support_tickets").select("priority,meta").eq("id", tk.id).single(), "ticket again");
+          s.check("Retrying bumps the same ticket to urgent (no spam)", tk2.priority === "urgent" && (tk2.meta as { attempts?: number }).attempts === 2);
+        }
+      } finally {
+        if (created.length) await c.sb.from("social_accounts").delete().in("id", created);
+      }
+    },
+  },
+  {
     key: "support",
     name: "Support inbox: visitor message → admin reply → resolve",
     area: "Support",

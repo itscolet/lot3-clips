@@ -130,6 +130,7 @@ export type SupportTicket = {
   last_message_at: string;
   last_message_from: string | null;
   preview: string | null;
+  meta: Record<string, unknown>;
   unread_admin: boolean;
   unread_user: boolean;
   first_response_at: string | null;

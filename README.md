@@ -48,3 +48,11 @@ Admins work the inbox at `/admin/support`:
 - Visitors aren't emailed automatically: use **Email visitor their link** on their ticket.
 
 Schema: `supabase/migrations/20261115010000_support_inbox.sql` (tables, row-level security, rate-limited `support_*` functions, private `support` storage bucket, starter saved replies). Run it once in the Supabase SQL editor. The Test Lab's **Support inbox** test checks the whole flow.
+
+## Page claims
+
+Clippers sign up without email confirmation and claim TikTok, Instagram or YouTube pages by typing the username (or pasting the profile link) under **Dashboard → Your pages**. A claim is active immediately; there's no bio code.
+
+If someone tries to claim a page another account already holds, the claim is blocked and a **high-priority ticket** opens in `/admin/support` (tag `claim-conflict`). It shows who's trying, the current owner (email, when they claimed it, clips and earnings on that page, other pages), a risk read, and **Transfer** / **Keep** buttons that move the page (or not), message the claimant in their language, and resolve the ticket. Repeat attempts bump the same ticket to urgent instead of opening new ones.
+
+Schema: `supabase/migrations/20261116040000_page_claims.sql`. Test Lab: **Page claims** test.

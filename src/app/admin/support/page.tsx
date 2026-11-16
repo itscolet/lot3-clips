@@ -187,6 +187,7 @@ export default async function SupportInboxPage({ searchParams }: PageProps<"/adm
                 guest_email: ticket.user_id ? null : ticket.guest_email,
                 guest_link: ticket.user_id ? null : `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/support/t/${ticket.access_token}`,
                 campaign: ticket.campaigns ? { id: ticket.campaigns.id, title: ticket.campaigns.title } : null,
+                meta: (ticket.meta ?? {}) as Record<string, unknown>,
               }}
               messages={messages.map((m) => ({
                 id: m.id,
