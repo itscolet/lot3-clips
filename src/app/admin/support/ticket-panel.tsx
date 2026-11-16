@@ -10,6 +10,7 @@ import { FormNote } from "@/components/ui/form-note";
 import { TestBadge } from "@/components/ui/ui";
 import { AutoTextarea, MessageText } from "@/components/support/bits";
 import { cn, timeAgo } from "@/lib/format";
+import { ClaimCard } from "./claim-card";
 
 type Ticket = {
   id: string;
@@ -27,6 +28,7 @@ type Ticket = {
   guest_email: string | null;
   guest_link: string | null;
   campaign: { id: string; title: string } | null;
+  meta: Record<string, unknown>;
 };
 type Msg = { id: string; author_role: string; author: string | null; body: string; internal: boolean; created_at: string; attachment_url: string | null };
 type Reply = { id: string; title: string; body: string; body_es: string | null };
@@ -248,6 +250,10 @@ export function TicketPanel({
         </div>
       </div>
 
+      {ticket.meta?.type === "claim_conflict" && (
+        <ClaimCard ticketId={ticket.id} meta={ticket.meta as unknown as Parameters<typeof ClaimCard>[0]["meta"]} lang={ticket.lang} />
+      )}
+
       {context && (
         <details className="group rounded-2xl border border-line bg-s1 xl:hidden [&_summary::-webkit-details-marker]:hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3.5 text-[13px] text-mute">
@@ -267,7 +273,7 @@ export function TicketPanel({
                 <div className="mb-1.5 flex items-center gap-2 text-[11px] text-dim">
                   <span className="font-medium uppercase tracking-[0.1em] text-mute">Internal note</span>
                   <span>·</span>
-                  <span>@{m.author}</span>
+                  <span>{m.author ? `@${m.author}` : "auto"}</span>
                   <span>·</span>
                   <span>{timeAgo(m.created_at)}</span>
                 </div>
@@ -279,7 +285,7 @@ export function TicketPanel({
           return (
             <li key={m.id} className={cn("flex max-w-[88%] flex-col gap-1.5 sm:max-w-[78%]", team ? "items-end self-end" : "items-start self-start")}>
               <div className="flex items-center gap-2 px-1 text-[11px] text-dim">
-                <span className={team ? "" : "text-mute"}>{team ? `@${m.author}` : ticket.who}</span>
+                <span className={team ? "" : "text-mute"}>{team ? (m.author ? `@${m.author}` : "Auto message") : ticket.who}</span>
                 <span>·</span>
                 <span>{timeAgo(m.created_at)}</span>
                 {!team && (

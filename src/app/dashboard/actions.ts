@@ -3,7 +3,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { detectPlatform, normalizeUrl } from "@/lib/format";
-import type { Platform } from "@/lib/types";
 import { getT } from "@/lib/i18n/server";
 import type { Dict } from "@/lib/i18n/dict";
 
@@ -41,39 +40,22 @@ export async function submitClip(_: ActionState, fd: FormData): Promise<ActionSt
   return { ok: true, message: t.act.submitted };
 }
 
-export async function connectAccount(_: ActionState, fd: FormData): Promise<ActionState> {
-  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
-  const platform = String(fd.get("platform")) as Platform;
-  const handle = String(fd.get("handle") || "")
-    .trim()
-    .replace(/^@/, "")
-    .replace(/^https?:\/\/(www\.)?(tiktok|instagram)\.com\/@?/i, "")
-    .replace(/[/?].*$/, "")
-    .toLowerCase();
-  if (!handle) return { error: t.act.enterHandle };
-  const { error } = await supabase.from("social_accounts").insert({ user_id: profile.id, platform, handle });
-  if (error) return { error: friendly(error.message, t) };
-  revalidatePath("/dashboard/accounts");
-  return { ok: true, message: t.act.accountAdded };
-}
+export type ClaimState = { ok?: boolean; error?: string; message?: string; ticket?: number } | null;
 
-export async function verifyAccount(_: ActionState, fd: FormData): Promise<ActionState> {
-  const [{ supabase, profile }, { t }] = await Promise.all([requireUser(), getT()]);
-  const id = String(fd.get("id"));
-  const { data: acc } = await supabase.from("social_accounts").select("*").eq("id", id).eq("user_id", profile.id).single();
-  if (!acc) return { error: t.act.notFound };
-  const { checkBioCode } = await import("@/lib/apify");
-  const res = await checkBioCode(acc.platform, acc.handle, acc.verify_code);
-  if (res.status === "unavailable")
-    return { ok: true, message: t.act.autoOffline };
-  if (res.status === "not_found") return { error: t.act.codeNotFound(acc.verify_code, acc.handle) };
-  // mark verified via the service client (clippers can't self-verify)
-  const { supabaseService } = await import("@/lib/supabase/server");
-  const svc = supabaseService();
-  if (!svc) return { ok: true, message: t.act.codeFound };
-  await svc.from("social_accounts").update({ verified_at: new Date().toISOString(), followers: res.followers ?? null }).eq("id", id);
-  revalidatePath("/dashboard/accounts");
-  return { ok: true, message: t.act.verified };
+/** Claim a TikTok / Instagram / YouTube page by username. Active immediately; duplicates are blocked and flagged to admins. */
+export async function claimAccount(_: ClaimState, fd: FormData): Promise<ClaimState> {
+  const [{ supabase }, { lang, t }] = await Promise.all([requireUser(), getT()]);
+  const platform = String(fd.get("platform") ?? "");
+  const handle = String(fd.get("handle") ?? "").trim();
+  if (!handle) return { error: t.act.enterHandle };
+  const { data, error } = await supabase.rpc("claim_page", { p_platform: platform, p_handle: handle, p_lang: lang });
+  if (error) return { error: error.message.includes("suspended") ? t.act.suspended : t.support.err.generic };
+  const r = data as { status: "claimed" | "yours" | "taken" | "invalid"; handle?: string; ticket?: number };
+  revalidatePath("/dashboard", "layout");
+  if (r.status === "claimed") return { ok: true, message: t.act.claimed(r.handle ?? handle) };
+  if (r.status === "yours") return { ok: true, message: t.act.alreadyYours(r.handle ?? handle) };
+  if (r.status === "taken") return { error: t.act.claimTaken(r.handle ?? handle), ticket: r.ticket };
+  return { error: t.act.badHandle };
 }
 
 export async function uploadAudience(_: ActionState, fd: FormData): Promise<ActionState> {

@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseServer, supabaseService } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n/server";
 import { authError } from "@/lib/i18n/dict";
 
@@ -33,14 +33,31 @@ export async function signUp(_: AuthState, fd: FormData): Promise<AuthState> {
   const h = await headers();
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? `https://${h.get("host")}`;
   const next = safeNext(fd.get("next"));
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  const password = String(fd.get("password") ?? "");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: t.authErr.badEmail };
+  if (password.length < 8) return { error: t.authErr.weakPw };
+  const dest = next === "/campaigns" || next === "/dashboard" ? "/dashboard/accounts" : next;
+
+  // We hand-pick who we invite, so skip email confirmation: create the account already confirmed, then sign in.
+  const svc = supabaseService();
+  if (svc) {
+    const { error: createErr } = await svc.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { username, lang } });
+    if (createErr) return { error: authError(createErr.message, t) };
+    const { error: loginErr } = await sb.auth.signInWithPassword({ email, password });
+    if (loginErr) return { error: authError(loginErr.message, t) };
+    redirect(dest);
+  }
+
+  // Fallback if the service key isn't configured: normal signup (may require email confirmation).
   const { data, error } = await sb.auth.signUp({
-    email: String(fd.get("email") ?? "").trim(),
-    password: String(fd.get("password") ?? ""),
+    email,
+    password,
     options: { data: { username, lang }, emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` },
   });
   if (error) return { error: authError(error.message, t) };
   if (!data.session) return { message: t.authErr.confirm };
-  redirect(next === "/campaigns" || next === "/dashboard" ? "/dashboard/accounts" : next);
+  redirect(dest);
 }
 
 export async function sendReset(_: AuthState, fd: FormData): Promise<AuthState> {

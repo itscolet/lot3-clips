@@ -125,6 +125,7 @@ export function Lab({
               ["Resolve a fraud flag", "/admin/flags"],
               ["Complete the campaign, mark payouts paid", "/admin/payouts"],
               ["Open the client report link", "/admin/clients"],
+              ["Claim a page, then try claiming it from a second account", "/dashboard/accounts"],
               ["Send a support message as a visitor (incognito)", "/support"],
               ["Reply, add a note, resolve it in Support", "/admin/support"],
               ["Check the activity log", "/admin/activity"],
