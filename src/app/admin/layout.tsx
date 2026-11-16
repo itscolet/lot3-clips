@@ -6,6 +6,7 @@ import {
   Flag,
   Gauge,
   Inbox,
+  Mail,
   LifeBuoy,
   Megaphone,
   RefreshCw,
@@ -52,6 +53,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       title: "System",
       items: [
         { href: "/admin/sync", label: "View sync", icon: <RefreshCw /> },
+        { href: "/admin/messages", label: "Messages", icon: <Mail /> },
         { href: "/admin/activity", label: "Activity log", icon: <Activity /> },
         { href: "/admin/test-lab", label: "Test Lab", icon: <FlaskConical /> },
       ],

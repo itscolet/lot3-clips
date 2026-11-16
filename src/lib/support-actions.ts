@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "./auth";
 import { getLang } from "./i18n/server";
 import { supportErrCode, uploadSupportFile, type SupportErr } from "./support";
+import { alertNewTicket } from "./notify";
 
 export type SupportState = { ok?: boolean; error?: SupportErr } | null;
 
@@ -36,6 +37,7 @@ export async function createTicket(_: SupportState, fd: FormData): Promise<Suppo
     .single<{ id: string; number: number; access_token: string }>();
   if (error || !data) return { error: supportErrCode(error?.message) };
 
+  alertNewTicket(data.number);
   revalidatePath("/dashboard", "layout");
   revalidatePath("/admin", "layout");
   redirect(user ? `/dashboard/support/${data.number}?new=1` : `/support/t/${data.access_token}?new=1`);

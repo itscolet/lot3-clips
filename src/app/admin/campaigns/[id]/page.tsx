@@ -12,6 +12,8 @@ import { Card, Empty, LinkButton, Progress, StatusBadge, TestBadge } from "@/com
 import { PlatformIcon } from "@/components/ui/icons";
 import { CopyField, ConfirmButton, ManualViews, ReviewButtons, SyncButton } from "@/components/admin/controls";
 import { deleteCampaign, duplicateCampaign, rotateReportLink, setCampaignStatus } from "../../actions";
+import { AnnounceCard } from "../../messages/announce-card";
+import { campaignRecipients } from "@/lib/notify";
 
 type Sub = {
   id: string;
@@ -32,7 +34,7 @@ type Sub = {
 export default async function CampaignAdmin({ params }: PageProps<"/admin/campaigns/[id]">) {
   const { id } = await params;
   const { supabase } = await requireAdmin();
-  const [{ data: c }, { data: st }, { data: subs }, { data: clients }] = await Promise.all([
+  const [{ data: c }, { data: st }, { data: subs }, { data: clients }, recipients] = await Promise.all([
     supabase.from("campaigns").select("*").eq("id", id).maybeSingle<Campaign>(),
     supabase.rpc("campaign_stats", { p_campaign: id }).single<Stats>(),
     supabase
@@ -41,6 +43,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
       .eq("campaign_id", id)
       .order("views", { ascending: false }),
     supabase.from("clients").select("id,name").order("name"),
+    campaignRecipients(),
   ]);
   if (!c) notFound();
   const stats = st ?? { submitted: 0, approved: 0, pending: 0, rejected: 0, total_views: 0, spent: 0, clippers: 0 };
@@ -151,7 +154,7 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
       </div>
       <Progress value={Number(stats.spent)} max={Number(c.budget)} className="mt-3" />
 
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card className="min-w-0 p-5">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-[13px] font-medium">Client report link</span>
@@ -170,6 +173,13 @@ export default async function CampaignAdmin({ params }: PageProps<"/admin/campai
           </div>
           <SyncButton campaignId={c.id} />
         </Card>
+        <AnnounceCard
+          id={c.id}
+          live={c.status === "live"}
+          announcedAt={(c as Campaign & { announced_at?: string | null }).announced_at ?? null}
+          emails={recipients.filter((r) => r.email_opt_in && r.email).length}
+          texts={recipients.filter((r) => r.sms_opt_in && r.phone).length}
+        />
       </div>
 
       <div className="mt-8">

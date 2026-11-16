@@ -56,3 +56,34 @@ Clippers sign up without email confirmation and claim TikTok, Instagram or YouTu
 If someone tries to claim a page another account already holds, the claim is blocked and a **high-priority ticket** opens in `/admin/support` (tag `claim-conflict`). It shows who's trying, the current owner (email, when they claimed it, clips and earnings on that page, other pages), a risk read, and **Transfer** / **Keep** buttons that move the page (or not), message the claimant in their language, and resolve the ticket. Repeat attempts bump the same ticket to urgent instead of opening new ones.
 
 Schema: `supabase/migrations/20261116040000_page_claims.sql`. Test Lab: **Page claims** test.
+
+## Email + SMS notifications
+
+**Signup** shows the full Terms & rules in a scroll box; "I accept" unlocks once the clipper reaches the end. They can opt in to **new-campaign emails** (on by default) and **texts** (off by default; needs a mobile number with country code + explicit consent). Accepted terms version and time are stored. Clippers change opt-ins in **Settings → Notifications**; every campaign email has a one-click unsubscribe.
+
+**What gets sent**
+
+| When | Who | Channel |
+|---|---|---|
+| You press **Announce** on a live campaign (`/admin/campaigns/<id>`) | Opted-in clippers, in their language | Email + text |
+| You reply to a support ticket (or resolve a claim) | That clipper, or the visitor who wrote in | Email |
+| New support ticket | You | Email + text |
+| Page claim blocked | You | Email + text |
+
+"Send test to me" on a campaign and the test buttons on `/admin/messages` send only to your alert contacts. Every message is logged on `/admin/messages`.
+
+**Environment variables (Railway)**
+
+| Variable | What |
+|---|---|
+| `RESEND_API_KEY` | Resend API key (email) |
+| `EMAIL_FROM` | e.g. `LOT3 Clips <campaigns@lot3clips.com>` (domain verified in Resend) |
+| `EMAIL_POSTAL_ADDRESS` | Mailing address shown in campaign email footers (required by CAN-SPAM) |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio credentials (texts) |
+| `TWILIO_FROM` | Twilio number (`+1…`) or Messaging Service SID (`MG…`) |
+| `ADMIN_ALERT_EMAIL` | Where your alerts go (default `admin@lot3media.com`) |
+| `ADMIN_ALERT_PHONE` | Your mobile for alert texts (`+1…`) |
+
+Without keys nothing breaks: messages are logged as "skipped". Texts to someone who replied STOP automatically turn their texts off.
+
+Schema: `supabase/migrations/20261116060000_notifications.sql` (private `notification_prefs`, `notifications` log, unsubscribe + recipient functions).
